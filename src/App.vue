@@ -17,7 +17,7 @@
               <el-checkbox-group v-model="groupList" size="small" class="num">
                 <el-checkbox-button v-for="num in numList" :label="num" :key="num">{{ num }}</el-checkbox-button>
               </el-checkbox-group>
-              <el-checkbox-group v-model="groupTypes" class="group-type">
+              <el-checkbox-group style="margin-top: 10px" v-model="groupTypes" class="group-type">
                 <el-checkbox label="豹子"></el-checkbox>
                 <el-checkbox label="组三"></el-checkbox>
                 <el-checkbox label="组六"></el-checkbox>
@@ -61,25 +61,34 @@
           </el-tab-pane>
         </el-tabs>
         <div class="rule-group">
-          <el-button class="rule" size="small" type="info">奇偶</el-button>
-          <el-button class="rule" size="small" type="info">和值</el-button>
-          <el-button class="rule" size="small" type="info">跨度</el-button>
-          <el-button class="rule" size="small" type="info">两码和</el-button>
-          <el-button class="rule" size="small" type="info">两码差</el-button>
-          <el-button class="rule" size="small" type="info">012路</el-button>
-          <el-button class="rule" size="small" type="info">大中小</el-button>
+          <div>
+            <el-button class="rule" size="small" type="info" @click="showNormalRule('jo')">奇偶</el-button>
+            <el-button class="rule" size="small" type="info" @click="showNormalRule('hz')">和值</el-button>
+            <el-button class="rule" size="small" type="info" @click="showNormalRule('kd')">跨度</el-button>
+            <el-button class="rule" size="small" type="info" @click="showNormalRule('lmh')">两码和</el-button>
+            <el-button class="rule" size="small" type="info" @click="showNormalRule('lmc')">两码差</el-button>
+            <el-button class="rule" size="small" type="info" @click="showNormalRule('zdz')">最大值</el-button>
+            <el-button class="rule" size="small" type="info" @click="showNormalRule('zjz')">中间值</el-button>
+            <el-button class="rule" size="small" type="info" @click="showNormalRule('zxz')">最小值</el-button>
+          </div>
+          <div>
+            <el-button class="rule" size="small" type="info" @click="dzxRule.show=true">大中小</el-button>
+            <el-button class="rule" size="small" type="info">012路</el-button>
+            <el-button class="rule" size="small" type="info">号码胆组</el-button>
+            <el-button class="rule" size="small" type="info">码差三码</el-button>
+          </div>
         </div>
         <div class="rule-check">
-          <div v-for="(item,index) in checkRules" :key="index">
+          <div v-for="(item,index) in checkRules" :key="item.id">
             <div class="rule-item">
               <div class="top">
                 <div>
-                  <span>【{{ index + 1 }}】{{ item.name }}</span>
+                  <span>【{{ index + 1 }}】{{ item.title }}</span>
                 </div>
                 <div>
-                  <el-button type="warning" size="small">修改</el-button>
-                  <el-button type="danger" size="small">移除</el-button>
-                  <el-button type="danger" size="small">容错</el-button>
+                  <el-checkbox v-model="item.ignore" @change="changeIg" style="margin-right: 10px">容错</el-checkbox>
+                  <el-button type="warning" size="small" @click="changeRule(index)">修改</el-button>
+                  <el-button type="danger" size="small" @click="delRule(index)">移除</el-button>
                 </div>
               </div>
               <div>
@@ -88,12 +97,39 @@
             </div>
           </div>
         </div>
+        <div class="ignore-check">
+          <div class="ig-min">
+            <span>最小容错数: </span>
+            <el-select v-model="igMin" placeholder="最小容错" size="small" @change="changeIgMin">
+              <el-option
+                  v-for="n in igNum+1"
+                  :key="n"
+                  :label="n-1"
+                  :value="n-1">
+              </el-option>
+            </el-select>
+          </div>
+          <div class="ig-max">
+            <span>最大容错数: </span>
+            <el-select v-model="igMax" placeholder="最大容错" size="small" @change="changeIgMax">
+              <el-option
+                  v-for="n in igNum+1"
+                  :key="n"
+                  :label="n-1"
+                  :value="n-1">
+              </el-option>
+            </el-select>
+          </div>
+        </div>
       </el-col>
       <el-col :span="12" class="top-right">
+        <div class="operate">
+          <el-button type="primary" :loading="loading" @click="getResult">获取结果</el-button>
+        </div>
         <div class="data">
           <el-table
               :data="resultList"
-              max-height="400"
+              max-height="350"
               style="width: 100%;"
               :border="true"
               :header-cell-style="{'text-align':'center'}"
@@ -107,6 +143,12 @@
             <el-table-column
                 prop="code"
                 label="号码"
+                sortable
+                align="center">
+            </el-table-column>
+            <el-table-column
+                prop="ruleNum"
+                label="条件"
                 sortable
                 align="center">
             </el-table-column>
@@ -135,23 +177,89 @@
               </template>
             </el-table-column>
           </el-table>
+          <div class="statistic">
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <div>
+                  <el-statistic :value="resultList.length" title="注数"/>
+                </div>
+              </el-col>
+              <el-col :span="12">
+                <div>
+                  <el-statistic :value="2*resultList.length" title="金额"/>
+                </div>
+              </el-col>
+            </el-row>
+          </div>
         </div>
       </el-col>
     </el-row>
-    <div>
-      <el-button @click="getResult">获取结果</el-button>
-    </div>
+    <el-dialog
+        :title="normalRule.title"
+        :visible.sync="normalRule.show"
+        width="60%"
+        center>
+      <div>
+        <div v-if="normalRule.ruleTip" style="padding-bottom: 5px"><span>{{ normalRule.title }}:</span></div>
+        <el-checkbox-group v-model="normalRule.value" size="mini">
+          <el-checkbox-button v-for="num in normalRule.max+1" :label="num-1" :key="num">
+            {{ num - 1 }}
+          </el-checkbox-button>
+        </el-checkbox-group>
+      </div>
+      <span slot="footer" class="dialog-footer">
+      <el-button @click="normalRule.show=false">取 消</el-button>
+      <el-button type="primary" @click="saveNormalRule">确 定</el-button>
+    </span>
+    </el-dialog>
+    <el-dialog
+        :title="dzxRule.title"
+        :visible.sync="dzxRule.show"
+        width="60%"
+        center>
+      <div>
+        <div class="item-rule">
+          <div class="title"><span>大数个数:</span></div>
+          <el-checkbox-group v-model="dzxRule.maxValue" size="mini">
+            <el-checkbox-button v-for="num in 4" :label="num-1" :key="num">
+              {{ num - 1 }}
+            </el-checkbox-button>
+          </el-checkbox-group>
+        </div>
+        <div class="item-rule">
+          <div class="title"><span>中数个数:</span></div>
+          <el-checkbox-group v-model="dzxRule.minValue" size="mini">
+            <el-checkbox-button v-for="num in 4" :label="num-1" :key="num">
+              {{ num - 1 }}
+            </el-checkbox-button>
+          </el-checkbox-group>
+        </div>
+        <div class="item-rule">
+          <div class="title"><span>小数个数:</span></div>
+          <el-checkbox-group v-model="dzxRule.minValue" size="mini">
+            <el-checkbox-button v-for="num in 4" :label="num-1" :key="num">
+              {{ num - 1 }}
+            </el-checkbox-button>
+          </el-checkbox-group>
+        </div>
+      </div>
+      <span slot="footer" class="dialog-footer">
+      <el-button @click="dzxRule.show=false">取 消</el-button>
+      <el-button type="primary" @click="saveDzxRule">确 定</el-button>
+    </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import {getNumDirect, getNumGroup} from './utils/index'
+import {filterCode, getIgCount, getNumDirect, getNumGroup, getRandomList} from './utils/index'
 
 const allNum = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 export default {
   name: 'App',
   data() {
     return {
+      loading: false,
       numList: allNum,
       bitList: allNum,
       tenList: allNum,
@@ -160,15 +268,42 @@ export default {
       groupTypes: ['半顺'],
       activeTab: 'group',
       resultList: [],
-      checkRules: [
-        {name: '和值', ignore: false, value: [7, 8, 9]},
-        {name: '和值', ignore: false, value: [7, 8, 9]},
-      ]
+      checkRules: [],
+      igMin: 0,
+      igMax: 1,
+      normalRule: {
+        show: false,
+        ruleTip: null,
+        title: null,
+        label:'',
+        max: 0,
+        id: null,
+        value: []
+      },
+      dzxRule:{
+        show: false,
+        title: '大中小',
+        label:'dzx',
+        id: null,
+        maxValue:[],
+        midValue:[],
+        minValue:[],
+        value: []
+      }
     }
   },
   computed: {
     isGroup() {
       return this.activeTab === 'group'
+    },
+    igNum() {
+      return this.checkRules.reduce((pre, cur) => cur.ignore ? pre + 1 : pre, 0)
+    },
+    igRules() {
+      return this.checkRules.filter(item => item.ignore)
+    },
+    noIgRules() {
+      return this.checkRules.filter(item => !item.ignore)
     }
   },
   methods: {
@@ -207,15 +342,122 @@ export default {
       this.resultList = []
     },
     getResult() {
+      this.loading = true
+      let itemList
+      this.resultList = []
       if (this.isGroup) {
-        this.resultList = getNumGroup(this.groupList, this.groupTypes)
+        itemList = getNumGroup(this.groupList, this.groupTypes)
       } else {
-        this.resultList = getNumDirect(this.bitList, this.tenList, this.hundredList)
+        itemList = getNumDirect(this.bitList, this.tenList, this.hundredList)
       }
+      if (this.checkRules.length > 0) {
+        // 每个值都进行随机获取容错过滤条件
+        for (let obj of itemList) {
+          let igCount = getIgCount(this.igMin, this.igMax)
+          let checkedIgRules = getRandomList(this.igRules.length - igCount, this.igRules)
+          let pass = filterCode(obj, [...checkedIgRules, ...this.noIgRules])
+          if (pass) {
+            let newRuleNum = this.noIgRules.length + checkedIgRules.length;
+            obj.ruleNum = newRuleNum
+            console.log(obj.ruleNum, newRuleNum)
+            this.resultList.push(obj)
+          }
+        }
+      } else {
+        this.resultList = itemList
+      }
+      this.loading = false
+      this.$message({
+        showClose: true,
+        message: '结果计算成功',
+        type: 'success'
+      });
     },
     delCode(row) {
       let index = this.resultList.findIndex(item => item.code === row.code)
       this.resultList.splice(index, 1)
+    },
+    delRule(index) {
+      this.checkRules.splice(index, 1)
+    },
+    showNormalRule(label) {
+      this.normalRule.show = true
+      this.normalRule.label = label
+      if (label === 'jo') {
+        this.normalRule.title = '奇偶'
+        this.normalRule.ruleTip = '奇数个数'
+        this.normalRule.max = 3
+      } else if (label === 'hz') {
+        this.normalRule.title = '和值'
+        this.normalRule.max = 27
+      } else if (label === 'kd') {
+        this.normalRule.title = '跨度'
+        this.normalRule.max = 9
+      }else if (label === 'lmh') {
+        this.normalRule.title = '两码和'
+        this.normalRule.max = 18
+      }else if (label === 'lmc') {
+        this.normalRule.title = '两码差'
+        this.normalRule.max = 9
+      }else if (label === 'zdz') {
+        this.normalRule.title = '最大值'
+        this.normalRule.max = 9
+      }else if (label === 'zjz') {
+        this.normalRule.title = '中间值'
+        this.normalRule.max = 9
+      }else if (label === 'zxz') {
+        this.normalRule.title = '最小值'
+        this.normalRule.max = 9
+      }
+    },
+    changeRule(index) {
+      let checkRule = this.checkRules[index];
+      this.normalRule.id = checkRule.id
+      this.normalRule.value = checkRule.value
+      console.log(checkRule.label)
+      this.showNormalRule(checkRule.label)
+    },
+    changeIg(checked) {
+      if (!checked) {
+        if (this.igMin > this.igNum || this.igMax > this.igNum) {
+          this.igMin = 0
+          this.igMax = 0
+        }
+      }
+    },
+    changeIgMin(newVal) {
+      this.igMax = newVal
+    },
+    changeIgMax(newVal) {
+      if (newVal < this.igMin) {
+        this.$message({
+          type: 'warning',
+          message: '最大容错数不能小于最小容错数!'
+        })
+      }
+    },
+    saveNormalRule() {
+      if (this.normalRule.value.length === 0) {
+        this.$message.warning('至少需要选择一个条件才能保存!')
+      } else {
+        if (this.normalRule.id) {
+          let rule = this.checkRules.find(item => item.id === this.normalRule.id)
+          rule.value = this.normalRule.value
+        } else {
+          let rule = {
+            id: Date.now(),
+            title: this.normalRule.title,
+            label: this.normalRule.label,
+            ignore: false,
+            value: this.normalRule.value
+          }
+          this.checkRules.push(rule)
+        }
+      }
+      Object.assign(this.$data.normalRule, this.$options.data().normalRule)
+    },
+    saveDzxRule(){
+
     }
   },
   mounted() {
@@ -258,9 +500,20 @@ export default {
   padding: 0 50px;
 }
 
-.data {
-  margin-left: 50px;
-  margin-right: 50px;
+.top-right {
+  .operate {
+    margin: 10px;
+  }
+
+  .data {
+    margin: 10px;
+  }
+
+  .statistic {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid #e3e3e3;
+  }
 }
 
 .rule-group {
@@ -282,6 +535,26 @@ export default {
     display: flex;
     justify-content: space-between;
     align-items: center;
+  }
+}
+
+.ignore-check {
+  margin: 5px 10px;
+  padding: 10px 10px;
+  border: 1px solid #e3e3e3;
+
+  .ig-min {
+    margin-bottom: 5px;
+  }
+}
+
+.item-rule{
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  margin-bottom: 10px;
+  .title{
+    margin-right: 10px;
   }
 }
 

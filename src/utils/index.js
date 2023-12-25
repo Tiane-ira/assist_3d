@@ -52,6 +52,86 @@ export const getNumDirect = (bitList, tenList, hunList) => {
     return resultList
 }
 
+export const getIgCount = (igMin, igMax) => {
+    let count = 0
+    if (igMin === igMax) {
+        count = igMin
+    } else {
+        count = Math.floor(Math.random() * (igMax - igMin + 1)) + igMin;
+    }
+    return count
+}
+
+//选定下标进行截取
+export const getRandomList = (checkCount, ruleList) => {
+    if (checkCount === 0) return []
+    let len = ruleList.length
+    if (checkCount >= len) {
+        return ruleList
+    } else {
+        let start = Math.floor(Math.random() * len)
+        let end = start + checkCount
+        if (end <= len) {
+            return ruleList.slice(start, end)
+        } else {
+            let rest = end - len
+            return [...ruleList.slice(start, len), ...ruleList.slice(0, rest)]
+        }
+    }
+}
+
+export const filterCode = (obj, ruleList) => {
+    let hun = parseInt(obj.code.slice(0, 1))
+    let ten = parseInt(obj.code.slice(1, 2))
+    let bit = parseInt(obj.code.slice(2, 3))
+    let pass = true
+    for (let rule of ruleList) {
+        let label = rule.label
+        if (label === 'jo') {
+            let oddCount = 0
+            if (hun % 2 === 1) oddCount++
+            if (ten % 2 === 1) oddCount++
+            if (bit % 2 === 1) oddCount++
+            pass = rule.value.indexOf(oddCount) > -1
+        } else if (label === 'hz') {
+            let sum = hun + ten + bit
+            pass = rule.value.indexOf(sum) > -1
+        } else if (label === 'kd') {
+            let diff = Math.max(hun, ten, bit) - Math.min(hun, ten, bit)
+            pass = rule.value.indexOf(diff) > -1
+        } else if (label === 'lmh') {
+            let highSum = hun + ten
+            let midSum = hun + bit
+            let lowSum = ten + bit
+            pass = rule.value.indexOf(highSum) > -1 ||
+                rule.value.indexOf(midSum) > -1 ||
+                rule.value.indexOf(lowSum) > -1
+        } else if (label === 'lmc') {
+            let highDiff = Math.abs(hun - ten)
+            let midDiff = Math.abs(hun - bit)
+            let lowDiff = Math.abs(ten - bit)
+            pass = rule.value.indexOf(highDiff) > -1 ||
+                rule.value.indexOf(midDiff) > -1 ||
+                rule.value.indexOf(lowDiff) > -1
+        } else if (label === 'zdz') {
+            let max = Math.max(hun, ten, bit)
+            pass = rule.value.indexOf(max) > -1
+        } else if (label === 'zjz') {
+            let arr = [hun, ten, bit];
+            let orderArr = arr.sort((a, b) => a - b)
+            let mid = orderArr[1]
+            pass = rule.value.indexOf(mid)
+        } else if (label === 'zxz') {
+            let min = Math.min(hun, ten, bit)
+            pass = rule.value.indexOf(min) > -1
+        }
+        if (!pass) {
+            return false
+        }
+    }
+    return true
+}
+
 function getNum(hunStr, tenStr, bitStr) {
     let hun = parseInt(hunStr);
     let ten = parseInt(tenStr);
@@ -59,7 +139,7 @@ function getNum(hunStr, tenStr, bitStr) {
     let abs = Math.max(hun, ten, bit) - Math.min(hun, ten, bit)
     let sum = hun + ten + bit
     let code = `${hun}${ten}${bit}`
-    return {code, sum, abs}
+    return {code, sum, abs, ruleNum: 0}
 }
 
 function isShunZi(hunStr, tenStr, bitStr) {

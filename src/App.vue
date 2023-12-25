@@ -208,7 +208,7 @@
         </el-checkbox-group>
       </div>
       <span slot="footer" class="dialog-footer">
-      <el-button @click="normalRule.show=false">取 消</el-button>
+      <el-button @click="cancelNormal">取 消</el-button>
       <el-button type="primary" @click="saveNormalRule">确 定</el-button>
     </span>
     </el-dialog>
@@ -228,7 +228,7 @@
         </div>
         <div class="item-rule">
           <div class="title"><span>中数个数:</span></div>
-          <el-checkbox-group v-model="dzxRule.minValue" size="mini">
+          <el-checkbox-group v-model="dzxRule.midValue" size="mini">
             <el-checkbox-button v-for="num in 4" :label="num-1" :key="num">
               {{ num - 1 }}
             </el-checkbox-button>
@@ -270,7 +270,7 @@ export default {
       resultList: [],
       checkRules: [],
       igMin: 0,
-      igMax: 1,
+      igMax: 0,
       normalRule: {
         show: false,
         ruleTip: null,
@@ -435,6 +435,9 @@ export default {
           message: '最大容错数不能小于最小容错数!'
         })
       }
+    },
+    cancelNormal(){
+      Object.assign(this.$data.normalRule, this.$options.data().normalRule)
     },
     saveNormalRule() {
       if (this.normalRule.value.length === 0) {

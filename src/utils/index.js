@@ -14,7 +14,7 @@ export function getNumGroup(numList, typeList) {
                 if (typeList.indexOf('豹子') > -1 && hun === ten && ten === bit) {
                     let num = parseInt(hun);
                     let code = `${num}${num}${num}`
-                    resultList.push({code, sum: 3 * num, abs: 0})
+                    resultList.push({code, sum: 3 * num, abs: 0, ruleNum: 0})
                 }
                 if (typeList.indexOf('组三') > -1
                     && ((hun === ten && ten !== bit) ||

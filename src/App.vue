@@ -62,20 +62,19 @@
         </el-tabs>
         <div class="rule-group">
           <div>
-            <el-button class="rule" size="small" type="info" @click="showNormalRule('jo')">奇偶</el-button>
-            <el-button class="rule" size="small" type="info" @click="showNormalRule('hz')">和值</el-button>
-            <el-button class="rule" size="small" type="info" @click="showNormalRule('kd')">跨度</el-button>
-            <el-button class="rule" size="small" type="info" @click="showNormalRule('lmh')">两码和</el-button>
-            <el-button class="rule" size="small" type="info" @click="showNormalRule('lmc')">两码差</el-button>
-            <el-button class="rule" size="small" type="info" @click="showNormalRule('zdz')">最大值</el-button>
-            <el-button class="rule" size="small" type="info" @click="showNormalRule('zjz')">中间值</el-button>
-            <el-button class="rule" size="small" type="info" @click="showNormalRule('zxz')">最小值</el-button>
+            <el-button class="rule" size="small" type="info" @click="showRule('jo')">奇偶</el-button>
+            <el-button class="rule" size="small" type="info" @click="showRule('hz')">和值</el-button>
+            <el-button class="rule" size="small" type="info" @click="showRule('kd')">跨度</el-button>
+            <el-button class="rule" size="small" type="info" @click="showRule('lmh')">两码和</el-button>
+            <el-button class="rule" size="small" type="info" @click="showRule('lmc')">两码差</el-button>
+            <el-button class="rule" size="small" type="info" @click="showRule('zdz')">最大值</el-button>
+            <el-button class="rule" size="small" type="info" @click="showRule('zjz')">中间值</el-button>
+            <el-button class="rule" size="small" type="info" @click="showRule('zxz')">最小值</el-button>
           </div>
           <div>
-            <el-button class="rule" size="small" type="info" @click="dzxRule.show=true">大中小</el-button>
-            <el-button class="rule" size="small" type="info">012路</el-button>
-            <el-button class="rule" size="small" type="info">号码胆组</el-button>
-            <el-button class="rule" size="small" type="info">码差三码</el-button>
+            <el-button class="rule" size="small" type="info" @click="showRule('dzx')">大中小</el-button>
+            <el-button class="rule" size="small" type="info" @click="showRule('012l')">012路</el-button>
+            <el-button class="rule" size="small" type="info" @click="showRule('dmz')">胆码组</el-button>
           </div>
         </div>
         <div class="rule-check">
@@ -91,8 +90,22 @@
                   <el-button type="danger" size="small" @click="delRule(index)">移除</el-button>
                 </div>
               </div>
-              <div>
+              <div v-if="item.type === 'normal'">
                 <span>选定值:{{ item.value }}</span>
+              </div>
+              <div v-else-if="item.type === 'triple'">
+                <div v-for="(child,index) in item.value" :key="index">
+                  <span style="margin-right: 5px">{{ child.label }}:</span>
+                  <span>{{ child.value }}</span>
+                </div>
+              </div>
+              <div v-else-if="item.type === 'dmz'">
+                <div v-for="(child,index) in item.value" :key="index">
+                  <span style="margin-right: 5px">{{ child.label }}:</span>
+                  <span style="margin-right: 10px">{{ child.value }}</span>
+                  <span style="margin-right: 5px">出现个数:</span>
+                  <span>{{ child.count }}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -125,6 +138,7 @@
       <el-col :span="12" class="top-right">
         <div class="operate">
           <el-button type="primary" :loading="loading" @click="getResult">获取结果</el-button>
+          <el-button type="warning" @click="saveRule">保存条件</el-button>
         </div>
         <div class="data">
           <el-table
@@ -208,53 +222,65 @@
         </el-checkbox-group>
       </div>
       <span slot="footer" class="dialog-footer">
-      <el-button @click="cancelNormal">取 消</el-button>
+      <el-button @click="cancelRule('normal')">取 消</el-button>
       <el-button type="primary" @click="saveNormalRule">确 定</el-button>
     </span>
     </el-dialog>
+
     <el-dialog
-        :title="dzxRule.title"
-        :visible.sync="dzxRule.show"
+        :title="tripleRule.title"
+        :visible.sync="tripleRule.show"
         width="60%"
         center>
       <div>
-        <div class="item-rule">
-          <div class="title"><span>大数个数:</span></div>
-          <el-checkbox-group v-model="dzxRule.maxValue" size="mini">
-            <el-checkbox-button v-for="num in 4" :label="num-1" :key="num">
-              {{ num - 1 }}
-            </el-checkbox-button>
-          </el-checkbox-group>
-        </div>
-        <div class="item-rule">
-          <div class="title"><span>中数个数:</span></div>
-          <el-checkbox-group v-model="dzxRule.midValue" size="mini">
-            <el-checkbox-button v-for="num in 4" :label="num-1" :key="num">
-              {{ num - 1 }}
-            </el-checkbox-button>
-          </el-checkbox-group>
-        </div>
-        <div class="item-rule">
-          <div class="title"><span>小数个数:</span></div>
-          <el-checkbox-group v-model="dzxRule.minValue" size="mini">
-            <el-checkbox-button v-for="num in 4" :label="num-1" :key="num">
+        <div class="item-rule" v-for="(rule,index) in tripleRule.value" :key="index">
+          <div class="title"><span>{{ rule.label }}:</span></div>
+          <el-checkbox-group v-model="rule.value" size="mini">
+            <el-checkbox-button v-for="num in tripleRule.max+1" :label="num-1" :key="num">
               {{ num - 1 }}
             </el-checkbox-button>
           </el-checkbox-group>
         </div>
       </div>
       <span slot="footer" class="dialog-footer">
-      <el-button @click="dzxRule.show=false">取 消</el-button>
-      <el-button type="primary" @click="saveDzxRule">确 定</el-button>
+      <el-button @click="cancelRule('triple')">取 消</el-button>
+      <el-button type="primary" @click="saveTripleRule">确 定</el-button>
     </span>
     </el-dialog>
+
+    <el-dialog
+        :title="dmzRule.title"
+        :visible.sync="dmzRule.show"
+        width="90%"
+        center>
+      <div>
+        <div class="item-rule" v-for="(rule,index) in dmzRule.value" :key="index">
+          <div class="title"><span>{{ rule.label }}:</span></div>
+          <el-checkbox-group v-model="rule.value" size="mini">
+            <el-checkbox-button v-for="num in 10" :label="num-1" :key="num">
+              {{ num - 1 }}
+            </el-checkbox-button>
+          </el-checkbox-group>
+          <div class="title"><span>出现:</span></div>
+          <el-checkbox-group v-model="rule.count" size="mini">
+            <el-checkbox v-for="count in 4" :label="count-1" :key="count-1">{{ count - 1 }}次</el-checkbox>
+          </el-checkbox-group>
+        </div>
+      </div>
+      <span slot="footer" class="dialog-footer">
+      <el-button @click="cancelRule('dmz')">取 消</el-button>
+      <el-button type="primary" @click="saveDmzRule">确 定</el-button>
+    </span>
+    </el-dialog>
+
   </div>
 </template>
 
 <script>
-import {filterCode, getIgCount, getNumDirect, getNumGroup, getRandomList} from './utils/index'
+import {filterCode, getIgCount, getLocal, getNumDirect, getNumGroup, getRandomList, setLocal} from './utils/index'
 
 const allNum = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+const allType = ['豹子', '组三', '组六', '顺子', '半顺', '杂六']
 export default {
   name: 'App',
   data() {
@@ -265,7 +291,7 @@ export default {
       tenList: allNum,
       hundredList: allNum,
       groupList: allNum,
-      groupTypes: ['半顺'],
+      groupTypes: allType,
       activeTab: 'group',
       resultList: [],
       checkRules: [],
@@ -275,20 +301,33 @@ export default {
         show: false,
         ruleTip: null,
         title: null,
-        label:'',
+        label: '',
         max: 0,
         id: null,
         value: []
       },
-      dzxRule:{
+      tripleRule: {
         show: false,
-        title: '大中小',
-        label:'dzx',
+        title: '',
+        label: '',
+        max: 0,
         id: null,
-        maxValue:[],
-        midValue:[],
-        minValue:[],
-        value: []
+        value: [
+          {label: null, value: []},
+          {label: null, value: []},
+          {label: null, value: []},
+        ]
+      },
+      dmzRule: {
+        show: false,
+        title: '',
+        label: '',
+        id: null,
+        value: [
+          {label: '', value: [], count: []},
+          {label: '', value: [], count: []},
+          {label: '', value: [], count: []},
+        ]
       }
     }
   },
@@ -380,42 +419,89 @@ export default {
     delRule(index) {
       this.checkRules.splice(index, 1)
     },
-    showNormalRule(label) {
-      this.normalRule.show = true
-      this.normalRule.label = label
+    showRule(label) {
       if (label === 'jo') {
+        this.normalRule.show = true
+        this.normalRule.label = label
         this.normalRule.title = '奇偶'
         this.normalRule.ruleTip = '奇数个数'
         this.normalRule.max = 3
       } else if (label === 'hz') {
+        this.normalRule.show = true
+        this.normalRule.label = label
         this.normalRule.title = '和值'
         this.normalRule.max = 27
       } else if (label === 'kd') {
+        this.normalRule.show = true
+        this.normalRule.label = label
         this.normalRule.title = '跨度'
         this.normalRule.max = 9
-      }else if (label === 'lmh') {
+      } else if (label === 'lmh') {
+        this.normalRule.show = true
+        this.normalRule.label = label
         this.normalRule.title = '两码和'
         this.normalRule.max = 18
-      }else if (label === 'lmc') {
+      } else if (label === 'lmc') {
+        this.normalRule.show = true
+        this.normalRule.label = label
         this.normalRule.title = '两码差'
         this.normalRule.max = 9
-      }else if (label === 'zdz') {
+      } else if (label === 'zdz') {
+        this.normalRule.show = true
+        this.normalRule.label = label
         this.normalRule.title = '最大值'
         this.normalRule.max = 9
-      }else if (label === 'zjz') {
+      } else if (label === 'zjz') {
+        this.normalRule.show = true
+        this.normalRule.label = label
         this.normalRule.title = '中间值'
         this.normalRule.max = 9
-      }else if (label === 'zxz') {
+      } else if (label === 'zxz') {
+        this.normalRule.show = true
+        this.normalRule.label = label
         this.normalRule.title = '最小值'
         this.normalRule.max = 9
+      } else if (label === 'dzx') {
+        this.tripleRule.show = true
+        this.tripleRule.label = label
+        this.tripleRule.max = 3
+        this.tripleRule.title = '大中小'
+        this.tripleRule.value[0].label = '大数个数'
+        this.tripleRule.value[1].label = '中数个数'
+        this.tripleRule.value[2].label = '小数个数'
+      } else if (label === '012l') {
+        this.tripleRule.show = true
+        this.tripleRule.label = label
+        this.tripleRule.max = 3
+        this.tripleRule.title = '012路'
+        this.tripleRule.value[0].label = '0路个数'
+        this.tripleRule.value[1].label = '1路个数'
+        this.tripleRule.value[2].label = '2路个数'
+      } else if (label === 'dmz') {
+        this.dmzRule.show = true
+        this.dmzRule.label = label
+        this.dmzRule.title = '胆码组'
+        this.dmzRule.value[0].label = '胆组1'
+        this.dmzRule.value[1].label = '胆组2'
+        this.dmzRule.value[2].label = '胆组3'
       }
     },
     changeRule(index) {
       let checkRule = this.checkRules[index];
-      this.normalRule.id = checkRule.id
-      this.normalRule.value = checkRule.value
-      console.log(checkRule.label)
-      this.showNormalRule(checkRule.label)
+      if (checkRule.type === 'normal') {
+        this.normalRule.id = checkRule.id
+        this.normalRule.value = structuredClone(checkRule.value)
+        console.log(checkRule.label)
+        this.showRule(checkRule.label)
+      } else if (checkRule.type === 'triple') {
+        this.tripleRule.id = checkRule.id
+        this.tripleRule.value = structuredClone(checkRule.value)
+        this.showRule(checkRule.label)
+      } else if (checkRule.type === 'dmz') {
+        this.dmzRule.id = checkRule.id
+        this.dmzRule.value = structuredClone(checkRule.value)
+        this.showRule(checkRule.label)
+      }
     },
     changeIg(checked) {
       if (!checked) {
@@ -436,8 +522,12 @@ export default {
         })
       }
     },
-    cancelNormal(){
-      Object.assign(this.$data.normalRule, this.$options.data().normalRule)
+    cancelRule(type) {
+      if (type === 'normal') {
+        Object.assign(this.$data.normalRule, this.$options.data().normalRule)
+      } else if (type === 'triple') {
+        Object.assign(this.$data.tripleRule, this.$options.data().tripleRule)
+      }
     },
     saveNormalRule() {
       if (this.normalRule.value.length === 0) {
@@ -451,20 +541,101 @@ export default {
             id: Date.now(),
             title: this.normalRule.title,
             label: this.normalRule.label,
+            type: 'normal',
             ignore: false,
             value: this.normalRule.value
           }
           this.checkRules.push(rule)
         }
+        Object.assign(this.$data.normalRule, this.$options.data().normalRule)
       }
-      Object.assign(this.$data.normalRule, this.$options.data().normalRule)
     },
-    saveDzxRule(){
-
+    saveTripleRule() {
+      if (this.tripleRule.value[0].value.length === 0 &&
+          this.tripleRule.value[1].value.length === 0 &&
+          this.tripleRule.value[2].value.length === 0
+      ) {
+        this.$message.warning('至少需要选择一个条件才能保存!')
+      } else {
+        if (this.tripleRule.id) {
+          let rule = this.checkRules.find(item => item.id === this.tripleRule.id)
+          rule.value[0].value = this.tripleRule.value[0].value
+          rule.value[1].value = this.tripleRule.value[1].value
+          rule.value[2].value = this.tripleRule.value[2].value
+        } else {
+          let rule = {
+            id: Date.now(),
+            title: this.tripleRule.title,
+            label: this.tripleRule.label,
+            type: 'triple',
+            ignore: false,
+            value: this.tripleRule.value
+          }
+          this.checkRules.push(rule)
+        }
+        Object.assign(this.$data.tripleRule, this.$options.data().tripleRule)
+      }
+    },
+    saveDmzRule() {
+      if (this.dmzRule.value[0].value.length === 0 &&
+          this.dmzRule.value[1].value.length === 0 &&
+          this.dmzRule.value[2].value.length === 0
+      ) {
+        this.$message.warning('至少需要选择一个条件才能保存!')
+        return
+      }
+      if ((this.dmzRule.value[0].value.length !== 0 &&
+              this.dmzRule.value[0].count.length === 0) ||
+          (this.dmzRule.value[1].value.length !== 0 &&
+              this.dmzRule.value[1].count.length === 0) ||
+          (this.dmzRule.value[2].value.length !== 0 &&
+              this.dmzRule.value[2].count.length === 0)
+      ) {
+        this.$message.warning('胆组出现个数必选')
+        return
+      }
+      if (this.dmzRule.id) {
+        let rule = this.checkRules.find(item => item.id === this.dmzRule.id)
+        rule.value[0].value = this.dmzRule.value[0].value
+        rule.value[0].count = this.dmzRule.value[0].count
+        rule.value[1].value = this.dmzRule.value[1].value
+        rule.value[1].count = this.dmzRule.value[1].count
+        rule.value[2].value = this.dmzRule.value[2].value
+        rule.value[2].count = this.dmzRule.value[2].count
+      } else {
+        let rule = {
+          id: Date.now(),
+          title: this.dmzRule.title,
+          label: this.dmzRule.label,
+          type: 'dmz',
+          ignore: false,
+          value: this.dmzRule.value
+        }
+        this.checkRules.push(rule)
+      }
+      Object.assign(this.$data.dmzRule, this.$options.data().dmzRule)
+    },
+    saveRule() {
+      setLocal('rule', this.checkRules)
+      setLocal('hun', this.hundredList)
+      setLocal('ten', this.tenList)
+      setLocal('bit', this.bitList)
+      setLocal('group', this.groupList)
+      setLocal('groupType', this.groupTypes)
+      localStorage.setItem('igMin', this.igMin)
+      localStorage.setItem('igMax', this.igMax)
+      this.$message.success('保存条件成功')
     }
   },
   mounted() {
-
+    getLocal('rule', [])
+    getLocal('hun', allNum)
+    getLocal('ten', allNum)
+    getLocal('bit', allNum)
+    getLocal('group', allNum)
+    getLocal('groupType', allType)
+    localStorage.setItem('igMin', this.igMin)
+    localStorage.setItem('igMax', this.igMax)
   }
 }
 </script>
@@ -551,13 +722,14 @@ export default {
   }
 }
 
-.item-rule{
+.item-rule {
   display: flex;
   align-items: center;
   justify-content: start;
   margin-bottom: 10px;
-  .title{
-    margin-right: 10px;
+
+  .title {
+    margin: 0 10px;
   }
 }
 

@@ -1,4 +1,17 @@
-export function getNumGroup(numList, typeList) {
+export const setLocal = (key, value) => {
+    localStorage.setItem(key, JSON.stringify(value))
+}
+
+export const getLocal = (key, defaultVal) => {
+    let str = localStorage.getItem(key)
+    if (str == null) {
+        return defaultVal
+    } else {
+        return JSON.parse(str)
+    }
+}
+
+export const getNumGroup = (numList, typeList) => {
     let resultList = []
     console.log(numList)
     console.log(typeList)
@@ -124,6 +137,51 @@ export const filterCode = (obj, ruleList) => {
         } else if (label === 'zxz') {
             let min = Math.min(hun, ten, bit)
             pass = rule.value.indexOf(min) > -1
+        } else if (label === 'dzx') {
+            let maxCount = 0
+            let midCount = 0
+            let minCount = 0
+            for (let num of [hun, ten, bit]) {
+                if (num >= 0 && num <= 2) {
+                    minCount++
+                } else if (num >= 3 && num <= 6) {
+                    midCount++
+                } else {
+                    maxCount++
+                }
+            }
+            pass = rule.value[0].value.indexOf(maxCount) > -1 ||
+                rule.value[1].value.indexOf(midCount) > -1 ||
+                rule.value[2].value.indexOf(minCount) > -1
+        } else if (label === '012l') {
+            let zeroCount = 0
+            let ondCount = 0
+            let twoCount = 0
+            for (let num of [hun, ten, bit]) {
+                if (num % 3 === 0) {
+                    zeroCount++
+                } else if (num % 3 === 1) {
+                    ondCount++
+                } else {
+                    twoCount++
+                }
+            }
+            pass = rule.value[0].value.indexOf(zeroCount) > -1 ||
+                rule.value[1].value.indexOf(ondCount) > -1 ||
+                rule.value[2].value.indexOf(twoCount) > -1
+        } else if (label === 'dmz') {
+            for (const dmzItem of rule.value) {
+                if (dmzItem.value.length > 0) {
+                    let count = 0
+                    for (const num of [hun, ten, bit]) {
+                        if (dmzItem.value.indexOf(num) > -1) {
+                            count++
+                        }
+                    }
+                    pass = dmzItem.count.indexOf(count) > -1
+                    if (pass) break
+                }
+            }
         }
         if (!pass) {
             return false

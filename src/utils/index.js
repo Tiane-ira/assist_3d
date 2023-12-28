@@ -1,3 +1,5 @@
+import * as XLSX from "xlsx";
+
 export const setLocal = (key, value) => {
     localStorage.setItem(key, JSON.stringify(value))
 }

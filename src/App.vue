@@ -139,6 +139,11 @@
         <div class="operate">
           <el-button type="primary" :loading="loading" @click="getResult">获取结果</el-button>
           <el-button type="warning" @click="saveRule">保存条件</el-button>
+          <el-button type="warning" @click="checkDir">选择导出目录</el-button>
+          <el-button type="warning" @click="exportData">导出</el-button>
+        </div>
+        <div class="operate" v-show="savePath">
+          保存文件路径:{{ savePath }}
         </div>
         <div class="data">
           <el-table
@@ -328,7 +333,8 @@ export default {
           {label: '', value: [], count: []},
           {label: '', value: [], count: []},
         ]
-      }
+      },
+      savePath: ''
     }
   },
   computed: {
@@ -625,6 +631,22 @@ export default {
       localStorage.setItem('igMin', this.igMin)
       localStorage.setItem('igMax', this.igMax)
       this.$message.success('保存条件成功')
+    },
+    checkDir() {
+      window.electron.showDirChecker().then((path) => {
+        this.savePath = path + "\\assist3d.xlsx"
+      })
+    },
+    exportData() {
+      if (!this.savePath || this.savePath === ''){
+        this.$message.error("请先选择导出路径")
+        return
+      }
+      if (this.resultList.length === 0){
+        this.$message.error("结果集为空无法导出")
+        return
+      }
+      window.electron.exportExcel(this.savePath, this.resultList)
     }
   },
   mounted() {

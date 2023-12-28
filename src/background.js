@@ -10,6 +10,9 @@ const json2xls = require('json2xls');
 const isDevelopment = process.env.NODE_ENV !== 'production'
 const path = require('path')
 
+const Store = require('electron-store');
+const store = new Store();
+
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
     {scheme: 'app', privileges: {secure: true, standard: true}}
@@ -88,6 +91,10 @@ if (isDevelopment) {
     }
 }
 
+ipcMain.handle('setConfig', (e, key, value) => {
+    store.set(key, value)
+    console.log("保存配置", key, value)
+})
 
 ipcMain.handle('showDirChecker', () => {
     let dir = dialog.showOpenDialogSync({
@@ -98,10 +105,12 @@ ipcMain.handle('showDirChecker', () => {
 })
 
 ipcMain.handle('exportExcel', (e, path, data) => {
-    exportExcel(path, data)
-})
-
-function exportExcel(path, data) {
     let xls = json2xls(data);
     fs.writeFileSync(path, xls, 'binary');
-}
+})
+
+ipcMain.handle('getConfig', (e, key) => {
+    let value = store.get(key)
+    console.log('获取配置', key, value)
+    return value
+})

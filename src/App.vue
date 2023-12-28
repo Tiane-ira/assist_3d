@@ -140,7 +140,7 @@
           <el-button type="primary" :loading="loading" @click="getResult">获取结果</el-button>
           <el-button type="warning" @click="saveRule">保存条件</el-button>
           <el-button type="warning" @click="checkDir">选择导出目录</el-button>
-          <el-button type="warning" @click="exportData">导出</el-button>
+          <el-button type="warning" :disabled="!savePath" :loading="exporting" @click="exportData">导出</el-button>
         </div>
         <div class="operate" v-show="savePath">
           保存文件路径:{{ savePath }}
@@ -219,7 +219,7 @@
         width="60%"
         center>
       <div>
-        <div v-if="normalRule.ruleTip" style="padding-bottom: 5px"><span>{{ normalRule.title }}:</span></div>
+        <div v-if="normalRule.ruleTip" style="padding-bottom: 5px"><span>{{ normalRule.ruleTip }}:</span></div>
         <el-checkbox-group v-model="normalRule.value" size="mini">
           <el-checkbox-button v-for="num in normalRule.max+1" :label="num-1" :key="num">
             {{ num - 1 }}
@@ -282,7 +282,7 @@
 </template>
 
 <script>
-import {filterCode, getIgCount, getLocal, getNumDirect, getNumGroup, getRandomList, setLocal} from './utils/index'
+import {filterCode, getIgCount, getNumDirect, getNumGroup, getRandomList} from './utils/index'
 
 const allNum = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 const allType = ['豹子', '组三', '组六', '顺子', '半顺', '杂六']
@@ -291,6 +291,7 @@ export default {
   data() {
     return {
       loading: false,
+      exporting: false,
       numList: allNum,
       bitList: allNum,
       tenList: allNum,
@@ -392,6 +393,7 @@ export default {
       this.resultList = []
       if (this.isGroup) {
         itemList = getNumGroup(this.groupList, this.groupTypes)
+        console.log(itemList)
       } else {
         itemList = getNumDirect(this.bitList, this.tenList, this.hundredList)
       }
@@ -622,14 +624,18 @@ export default {
       Object.assign(this.$data.dmzRule, this.$options.data().dmzRule)
     },
     saveRule() {
-      setLocal('rule', this.checkRules)
-      setLocal('hun', this.hundredList)
-      setLocal('ten', this.tenList)
-      setLocal('bit', this.bitList)
-      setLocal('group', this.groupList)
-      setLocal('groupType', this.groupTypes)
-      localStorage.setItem('igMin', this.igMin)
-      localStorage.setItem('igMax', this.igMax)
+      let config = {
+        rule: this.checkRules,
+        hun: this.hundredList,
+        ten: this.tenList,
+        bit: this.bitList,
+        group: this.groupList,
+        groupType: this.groupTypes,
+        igMin: this.igMin,
+        igMax: this.igMax,
+        savePath: this.savePath
+      }
+      window.electron.setConfig('config', config)
       this.$message.success('保存条件成功')
     },
     checkDir() {
@@ -638,26 +644,38 @@ export default {
       })
     },
     exportData() {
-      if (!this.savePath || this.savePath === ''){
-        this.$message.error("请先选择导出路径")
-        return
+      try {
+        this.exporting = true
+        if (!this.savePath || this.savePath === '') {
+          this.$message.error("请先选择导出路径")
+          return
+        }
+        if (this.resultList.length === 0) {
+          this.$message.error("结果集为空无法导出")
+          return
+        }
+        window.electron.exportExcel(this.savePath, this.resultList)
+        this.$message.success("导出结果完成")
+      } finally {
+        this.exporting = false
       }
-      if (this.resultList.length === 0){
-        this.$message.error("结果集为空无法导出")
-        return
-      }
-      window.electron.exportExcel(this.savePath, this.resultList)
     }
   },
   mounted() {
-    getLocal('rule', [])
-    getLocal('hun', allNum)
-    getLocal('ten', allNum)
-    getLocal('bit', allNum)
-    getLocal('group', allNum)
-    getLocal('groupType', allType)
-    localStorage.setItem('igMin', this.igMin)
-    localStorage.setItem('igMax', this.igMax)
+    window.electron.getConfig('config').then(config => {
+      console.log('读取到系统配置:', config)
+      if (!config) config = {}
+      this.checkRules = config.rule || []
+      this.hundredList = config.hun || []
+      this.tenList = config.ten || []
+      this.bitList = config.bit || []
+      this.groupList = config.group || []
+      this.groupTypes = config.groupType || []
+      this.igMin = config.igMin || 0
+      this.igMax = config.igMax || 0
+      this.savePath = config.savePath
+    })
+
   }
 }
 </script>

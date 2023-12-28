@@ -5,6 +5,7 @@ module.exports = defineConfig({
     pluginOptions: {
         electronBuilder: {
             preload: 'src/preload.js',
+            customFileProtocol: "./",
             builderOptions: {
                 // 在这里的配置将会和默认配置合并，然后传递给electron-builder
                 appId: 'assist_3d', // 项目唯一标识

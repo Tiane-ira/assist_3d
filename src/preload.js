@@ -7,19 +7,15 @@ const getConfig = (key) => {
 const setConfig = (key, value) => {
     ipcRenderer.invoke('setConfig', key, value)
 }
-const showDirChecker = () => {
-    return ipcRenderer.invoke('showDirChecker')
-}
 
-const exportExcel = (path, data) => {
-    return ipcRenderer.invoke('exportExcel', path, data)
+const copy2Clipboard = (data) => {
+    ipcRenderer.invoke('copy2Clipboard', data)
 }
 
 contextBridge.exposeInMainWorld('electron', {
     platform: process.platform,
     setConfig,
     getConfig,
-    showDirChecker,
-    exportExcel
+    copy2Clipboard
 })
 

@@ -139,8 +139,7 @@
         <div class="operate">
           <el-button type="primary" :loading="loading" @click="getResult">获取结果</el-button>
           <el-button type="warning" @click="saveRule">保存条件</el-button>
-          <el-button type="warning" @click="checkDir">选择导出目录</el-button>
-          <el-button type="warning" :disabled="!savePath" :loading="exporting" @click="exportData">导出</el-button>
+          <el-button type="warning" :disabled="!resultList.length" @click="copyResult">复制结果</el-button>
         </div>
         <div class="operate" v-show="savePath">
           保存文件路径:{{ savePath }}
@@ -152,7 +151,7 @@
               style="width: 100%;"
               :border="true"
               :header-cell-style="{'text-align':'center'}"
-              :default-sort="{prop: 'code', order: 'descending'}"
+              ref="table"
           >
             <el-table-column
                 label="序号"
@@ -166,21 +165,25 @@
                 align="center">
             </el-table-column>
             <el-table-column
-                prop="ruleNum"
-                label="条件"
-                sortable
-                align="center">
-            </el-table-column>
-            <el-table-column
                 prop="sum"
                 label="和值"
                 sortable
                 align="center">
             </el-table-column>
             <el-table-column
-                prop="abs"
+                prop="diff"
                 sortable
                 label="跨度"
+                align="center">
+            </el-table-column>
+            <el-table-column
+                prop="dzx"
+                label="大小"
+                align="center">
+            </el-table-column>
+            <el-table-column
+                prop="lye"
+                label="012路"
                 align="center">
             </el-table-column>
             <el-table-column
@@ -282,7 +285,7 @@
 </template>
 
 <script>
-import {filterCode, getIgCount, getNumDirect, getNumGroup, getRandomList} from './utils/index'
+import {getNumDirect, getNumGroup, getNumObjByCodes} from './utils/index'
 
 const allNum = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 const allType = ['豹子', '组三', '组六', '顺子', '半顺', '杂六']
@@ -308,7 +311,7 @@ export default {
         ruleTip: null,
         title: null,
         label: '',
-        max: 0,
+        valList: ['3奇','2ji'],
         id: null,
         value: []
       },
@@ -389,30 +392,13 @@ export default {
     },
     getResult() {
       this.loading = true
-      let itemList
-      this.resultList = []
+      let codeList
       if (this.isGroup) {
-        itemList = getNumGroup(this.groupList, this.groupTypes)
-        console.log(itemList)
+        codeList = getNumGroup(this.groupList, this.groupTypes)
       } else {
-        itemList = getNumDirect(this.bitList, this.tenList, this.hundredList)
+        codeList = getNumDirect(this.bitList, this.tenList, this.hundredList)
       }
-      if (this.checkRules.length > 0) {
-        // 每个值都进行随机获取容错过滤条件
-        for (let obj of itemList) {
-          let igCount = getIgCount(this.igMin, this.igMax)
-          let checkedIgRules = getRandomList(this.igRules.length - igCount, this.igRules)
-          let pass = filterCode(obj, [...checkedIgRules, ...this.noIgRules])
-          if (pass) {
-            let newRuleNum = this.noIgRules.length + checkedIgRules.length;
-            obj.ruleNum = newRuleNum
-            console.log(obj.ruleNum, newRuleNum)
-            this.resultList.push(obj)
-          }
-        }
-      } else {
-        this.resultList = itemList
-      }
+      this.resultList = getNumObjByCodes(codeList)
       this.loading = false
       this.$message({
         showClose: true,
@@ -535,6 +521,8 @@ export default {
         Object.assign(this.$data.normalRule, this.$options.data().normalRule)
       } else if (type === 'triple') {
         Object.assign(this.$data.tripleRule, this.$options.data().tripleRule)
+      }else if (type === 'dmz'){
+        Object.assign(this.$data.dmzRule, this.$options.data().dmzRule)
       }
     },
     saveNormalRule() {
@@ -638,27 +626,18 @@ export default {
       window.electron.setConfig('config', config)
       this.$message.success('保存条件成功')
     },
-    checkDir() {
-      window.electron.showDirChecker().then((path) => {
-        this.savePath = path + "\\assist3d.xlsx"
-      })
-    },
-    exportData() {
-      try {
-        this.exporting = true
-        if (!this.savePath || this.savePath === '') {
-          this.$message.error("请先选择导出路径")
-          return
-        }
-        if (this.resultList.length === 0) {
-          this.$message.error("结果集为空无法导出")
-          return
-        }
-        window.electron.exportExcel(this.savePath, this.resultList)
-        this.$message.success("导出结果完成")
-      } finally {
-        this.exporting = false
+    copyResult(){
+      if (this.resultList.length === 0){
+        this.$message.error('结果为空无法复制')
+        return
       }
+      let orderObjList = this.$refs.table.tableData
+      let copyList = []
+      for (let obj of orderObjList) {
+        copyList.push(obj.code)
+      }
+      window.electron.copy2Clipboard(copyList.join(' '))
+      this.$message.success(`已复制${copyList.length}个结果`)
     }
   },
   mounted() {

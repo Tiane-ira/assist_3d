@@ -1,11 +1,8 @@
 'use strict'
 
-import {app, protocol, BrowserWindow, ipcMain, dialog} from 'electron'
+import {app, protocol, BrowserWindow, ipcMain,clipboard} from 'electron'
 import {createProtocol} from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, {VUEJS_DEVTOOLS} from 'electron-devtools-installer'
-
-const fs = require('fs')
-const json2xls = require('json2xls');
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
 const path = require('path')
@@ -21,7 +18,7 @@ protocol.registerSchemesAsPrivileged([
 async function createWindow() {
     // Create the browser window.
     const win = new BrowserWindow({
-        width: 1000,
+        width: 1100,
         height: 600,
         autoHideMenuBar: true,
         icon: 'build/icons/icon.ico',
@@ -96,21 +93,12 @@ ipcMain.handle('setConfig', (e, key, value) => {
     console.log("保存配置", key, value)
 })
 
-ipcMain.handle('showDirChecker', () => {
-    let dir = dialog.showOpenDialogSync({
-        title: '选择保存到目录',
-        properties: ['openDirectory']
-    })
-    return dir ? dir[0] : ''
-})
-
-ipcMain.handle('exportExcel', (e, path, data) => {
-    let xls = json2xls(data);
-    fs.writeFileSync(path, xls, 'binary');
-})
-
 ipcMain.handle('getConfig', (e, key) => {
     let value = store.get(key)
     console.log('获取配置', key, value)
     return value
+})
+
+ipcMain.handle('copy2Clipboard', (e, data) => {
+    clipboard.writeText(data)
 })

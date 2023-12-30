@@ -85,26 +85,22 @@
                   <span>【{{ index + 1 }}】{{ item.title }}</span>
                 </div>
                 <div>
-                  <el-checkbox v-model="item.ignore" @change="changeIg" style="margin-right: 10px">容错</el-checkbox>
+                  <el-checkbox v-model="item.ignore" v-if="item.label!='dmz'" @change="changeIg"
+                               style="margin-right: 10px">容错
+                  </el-checkbox>
                   <el-button type="warning" size="small" @click="changeRule(index)">修改</el-button>
                   <el-button type="danger" size="small" @click="delRule(index)">移除</el-button>
                 </div>
               </div>
               <div v-if="item.type === 'normal'">
-                <span>选定值:{{ item.value }}</span>
-              </div>
-              <div v-else-if="item.type === 'triple'">
-                <div v-for="(child,index) in item.value" :key="index">
-                  <span style="margin-right: 5px">{{ child.label }}:</span>
-                  <span>{{ child.value }}</span>
-                </div>
+                <span>选定值:{{ item.checks }}</span>
               </div>
               <div v-else-if="item.type === 'dmz'">
-                <div v-for="(child,index) in item.value" :key="index">
+                <div v-for="(child,index) in item.checks" :key="index">
                   <span style="margin-right: 5px">{{ child.label }}:</span>
-                  <span style="margin-right: 10px">{{ child.value }}</span>
-                  <span style="margin-right: 5px">出现个数:</span>
-                  <span>{{ child.count }}</span>
+                  <span style="margin-right: 10px">{{ child.values }}</span>
+                  <span style="margin-right: 5px">出现次数:</span>
+                  <span>{{ child.counts }}</span>
                 </div>
               </div>
             </div>
@@ -113,7 +109,7 @@
         <div class="ignore-check">
           <div class="ig-min">
             <span>最小容错数: </span>
-            <el-select v-model="igMin" placeholder="最小容错" size="small" @change="changeIgMin">
+            <el-select :disabled="!igNum" v-model="igMin" placeholder="最小容错" size="small" @change="changeIgMin">
               <el-option
                   v-for="n in igNum+1"
                   :key="n"
@@ -124,7 +120,7 @@
           </div>
           <div class="ig-max">
             <span>最大容错数: </span>
-            <el-select v-model="igMax" placeholder="最大容错" size="small" @change="changeIgMax">
+            <el-select :disabled="!igNum" v-model="igMax" placeholder="最大容错" size="small" @change="changeIgMax">
               <el-option
                   v-for="n in igNum+1"
                   :key="n"
@@ -138,11 +134,8 @@
       <el-col :span="12" class="top-right">
         <div class="operate">
           <el-button type="primary" :loading="loading" @click="getResult">获取结果</el-button>
-          <el-button type="warning" @click="saveRule">保存条件</el-button>
+          <el-button type="warning" @click="saveConfig">保存条件</el-button>
           <el-button type="warning" :disabled="!resultList.length" @click="copyResult">复制结果</el-button>
-        </div>
-        <div class="operate" v-show="savePath">
-          保存文件路径:{{ savePath }}
         </div>
         <div class="data">
           <el-table
@@ -219,13 +212,13 @@
     <el-dialog
         :title="normalRule.title"
         :visible.sync="normalRule.show"
-        width="60%"
+        width="80%"
         center>
       <div>
         <div v-if="normalRule.ruleTip" style="padding-bottom: 5px"><span>{{ normalRule.ruleTip }}:</span></div>
-        <el-checkbox-group v-model="normalRule.value" size="mini">
-          <el-checkbox-button v-for="num in normalRule.max+1" :label="num-1" :key="num">
-            {{ num - 1 }}
+        <el-checkbox-group v-model="normalRule.checks" size="mini">
+          <el-checkbox-button v-for="(item,index) in normalRule.valList" :label="item" :key="index">
+            {{ item }}
           </el-checkbox-button>
         </el-checkbox-group>
       </div>
@@ -236,41 +229,20 @@
     </el-dialog>
 
     <el-dialog
-        :title="tripleRule.title"
-        :visible.sync="tripleRule.show"
-        width="60%"
-        center>
-      <div>
-        <div class="item-rule" v-for="(rule,index) in tripleRule.value" :key="index">
-          <div class="title"><span>{{ rule.label }}:</span></div>
-          <el-checkbox-group v-model="rule.value" size="mini">
-            <el-checkbox-button v-for="num in tripleRule.max+1" :label="num-1" :key="num">
-              {{ num - 1 }}
-            </el-checkbox-button>
-          </el-checkbox-group>
-        </div>
-      </div>
-      <span slot="footer" class="dialog-footer">
-      <el-button @click="cancelRule('triple')">取 消</el-button>
-      <el-button type="primary" @click="saveTripleRule">确 定</el-button>
-    </span>
-    </el-dialog>
-
-    <el-dialog
         :title="dmzRule.title"
         :visible.sync="dmzRule.show"
         width="90%"
         center>
       <div>
-        <div class="item-rule" v-for="(rule,index) in dmzRule.value" :key="index">
+        <div class="item-rule" v-for="(rule,index) in dmzRule.checks" :key="index">
           <div class="title"><span>{{ rule.label }}:</span></div>
-          <el-checkbox-group v-model="rule.value" size="mini">
+          <el-checkbox-group v-model="rule.values" size="mini">
             <el-checkbox-button v-for="num in 10" :label="num-1" :key="num">
               {{ num - 1 }}
             </el-checkbox-button>
           </el-checkbox-group>
           <div class="title"><span>出现:</span></div>
-          <el-checkbox-group v-model="rule.count" size="mini">
+          <el-checkbox-group v-model="rule.counts" size="mini">
             <el-checkbox v-for="count in 4" :label="count-1" :key="count-1">{{ count - 1 }}次</el-checkbox>
           </el-checkbox-group>
         </div>
@@ -285,10 +257,13 @@
 </template>
 
 <script>
-import {getNumDirect, getNumGroup, getNumObjByCodes} from './utils/index'
+import {filterCodes, getIgCounts, getNumDirect, getNumGroup, getNumObjByCodes, getSeqArr} from './utils/index'
 
 const allNum = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 const allType = ['豹子', '组三', '组六', '顺子', '半顺', '杂六']
+const allJiOu = ['3奇', '2奇1偶', '1奇2偶', '3偶']
+const allDzx = ['大大大', '大大中', '大中中', '中中中', '中中小', '中小小', '小小小', '大大小', '大小小']
+const all012l = ['000', '001', '011', '111', '112', '122', '222', '002', '022']
 export default {
   name: 'App',
   data() {
@@ -311,31 +286,19 @@ export default {
         ruleTip: null,
         title: null,
         label: '',
-        valList: ['3奇','2ji'],
+        valList: [],
         id: null,
-        value: []
-      },
-      tripleRule: {
-        show: false,
-        title: '',
-        label: '',
-        max: 0,
-        id: null,
-        value: [
-          {label: null, value: []},
-          {label: null, value: []},
-          {label: null, value: []},
-        ]
+        checks: []
       },
       dmzRule: {
         show: false,
         title: '',
         label: '',
         id: null,
-        value: [
-          {label: '', value: [], count: []},
-          {label: '', value: [], count: []},
-          {label: '', value: [], count: []},
+        checks: [
+          {label: '', values: [], counts: []},
+          {label: '', values: [], counts: []},
+          {label: '', values: [], counts: []},
         ]
       },
       savePath: ''
@@ -347,12 +310,6 @@ export default {
     },
     igNum() {
       return this.checkRules.reduce((pre, cur) => cur.ignore ? pre + 1 : pre, 0)
-    },
-    igRules() {
-      return this.checkRules.filter(item => item.ignore)
-    },
-    noIgRules() {
-      return this.checkRules.filter(item => !item.ignore)
     }
   },
   methods: {
@@ -398,13 +355,11 @@ export default {
       } else {
         codeList = getNumDirect(this.bitList, this.tenList, this.hundredList)
       }
-      this.resultList = getNumObjByCodes(codeList)
+      let igCounts = getIgCounts(this.igMin, this.igMax) // 默认0-0无容错
+      let filteredCodeList = filterCodes(codeList, this.checkRules, igCounts)
+      this.resultList = getNumObjByCodes(filteredCodeList)
       this.loading = false
-      this.$message({
-        showClose: true,
-        message: '结果计算成功',
-        type: 'success'
-      });
+      this.$message.success("结果计算成功");
     },
     delCode(row) {
       let index = this.resultList.findIndex(item => item.code === row.code)
@@ -418,82 +373,70 @@ export default {
         this.normalRule.show = true
         this.normalRule.label = label
         this.normalRule.title = '奇偶'
-        this.normalRule.ruleTip = '奇数个数'
-        this.normalRule.max = 3
+        this.normalRule.valList = structuredClone(allJiOu)
       } else if (label === 'hz') {
         this.normalRule.show = true
         this.normalRule.label = label
         this.normalRule.title = '和值'
-        this.normalRule.max = 27
+        this.normalRule.valList = getSeqArr(27)
       } else if (label === 'kd') {
         this.normalRule.show = true
         this.normalRule.label = label
         this.normalRule.title = '跨度'
-        this.normalRule.max = 9
+        this.normalRule.valList = getSeqArr(9)
       } else if (label === 'lmh') {
         this.normalRule.show = true
         this.normalRule.label = label
         this.normalRule.title = '两码和'
-        this.normalRule.max = 18
+        this.normalRule.valList = getSeqArr(18)
       } else if (label === 'lmc') {
         this.normalRule.show = true
         this.normalRule.label = label
         this.normalRule.title = '两码差'
-        this.normalRule.max = 9
+        this.normalRule.valList = getSeqArr(9)
       } else if (label === 'zdz') {
         this.normalRule.show = true
         this.normalRule.label = label
         this.normalRule.title = '最大值'
-        this.normalRule.max = 9
+        this.normalRule.valList = getSeqArr(9)
       } else if (label === 'zjz') {
         this.normalRule.show = true
         this.normalRule.label = label
         this.normalRule.title = '中间值'
-        this.normalRule.max = 9
+        this.normalRule.valList = getSeqArr(9)
       } else if (label === 'zxz') {
         this.normalRule.show = true
         this.normalRule.label = label
         this.normalRule.title = '最小值'
-        this.normalRule.max = 9
+        this.normalRule.valList = getSeqArr(9)
       } else if (label === 'dzx') {
-        this.tripleRule.show = true
-        this.tripleRule.label = label
-        this.tripleRule.max = 3
-        this.tripleRule.title = '大中小'
-        this.tripleRule.value[0].label = '大数个数'
-        this.tripleRule.value[1].label = '中数个数'
-        this.tripleRule.value[2].label = '小数个数'
+        this.normalRule.show = true
+        this.normalRule.label = label
+        this.normalRule.title = '大中小'
+        this.normalRule.valList = structuredClone(allDzx)
       } else if (label === '012l') {
-        this.tripleRule.show = true
-        this.tripleRule.label = label
-        this.tripleRule.max = 3
-        this.tripleRule.title = '012路'
-        this.tripleRule.value[0].label = '0路个数'
-        this.tripleRule.value[1].label = '1路个数'
-        this.tripleRule.value[2].label = '2路个数'
+        this.normalRule.show = true
+        this.normalRule.label = label
+        this.normalRule.title = '012路'
+        this.normalRule.valList = structuredClone(all012l)
       } else if (label === 'dmz') {
         this.dmzRule.show = true
         this.dmzRule.label = label
         this.dmzRule.title = '胆码组'
-        this.dmzRule.value[0].label = '胆组1'
-        this.dmzRule.value[1].label = '胆组2'
-        this.dmzRule.value[2].label = '胆组3'
+        this.dmzRule.checks[0].label = '胆组1'
+        this.dmzRule.checks[1].label = '胆组2'
+        this.dmzRule.checks[2].label = '胆组3'
       }
     },
     changeRule(index) {
       let checkRule = this.checkRules[index];
       if (checkRule.type === 'normal') {
         this.normalRule.id = checkRule.id
-        this.normalRule.value = structuredClone(checkRule.value)
-        console.log(checkRule.label)
-        this.showRule(checkRule.label)
-      } else if (checkRule.type === 'triple') {
-        this.tripleRule.id = checkRule.id
-        this.tripleRule.value = structuredClone(checkRule.value)
+        this.normalRule.checks = structuredClone(checkRule.checks)
         this.showRule(checkRule.label)
       } else if (checkRule.type === 'dmz') {
         this.dmzRule.id = checkRule.id
-        this.dmzRule.value = structuredClone(checkRule.value)
+        this.dmzRule.checks = structuredClone(checkRule.checks)
         this.showRule(checkRule.label)
       }
     },
@@ -519,19 +462,17 @@ export default {
     cancelRule(type) {
       if (type === 'normal') {
         Object.assign(this.$data.normalRule, this.$options.data().normalRule)
-      } else if (type === 'triple') {
-        Object.assign(this.$data.tripleRule, this.$options.data().tripleRule)
-      }else if (type === 'dmz'){
+      } else if (type === 'dmz') {
         Object.assign(this.$data.dmzRule, this.$options.data().dmzRule)
       }
     },
     saveNormalRule() {
-      if (this.normalRule.value.length === 0) {
+      if (this.normalRule.checks.length === 0) {
         this.$message.warning('至少需要选择一个条件才能保存!')
       } else {
         if (this.normalRule.id) {
           let rule = this.checkRules.find(item => item.id === this.normalRule.id)
-          rule.value = this.normalRule.value
+          rule.checks = this.normalRule.checks
         } else {
           let rule = {
             id: Date.now(),
@@ -539,65 +480,39 @@ export default {
             label: this.normalRule.label,
             type: 'normal',
             ignore: false,
-            value: this.normalRule.value
+            checks: this.normalRule.checks
           }
           this.checkRules.push(rule)
         }
         Object.assign(this.$data.normalRule, this.$options.data().normalRule)
       }
     },
-    saveTripleRule() {
-      if (this.tripleRule.value[0].value.length === 0 &&
-          this.tripleRule.value[1].value.length === 0 &&
-          this.tripleRule.value[2].value.length === 0
-      ) {
-        this.$message.warning('至少需要选择一个条件才能保存!')
-      } else {
-        if (this.tripleRule.id) {
-          let rule = this.checkRules.find(item => item.id === this.tripleRule.id)
-          rule.value[0].value = this.tripleRule.value[0].value
-          rule.value[1].value = this.tripleRule.value[1].value
-          rule.value[2].value = this.tripleRule.value[2].value
-        } else {
-          let rule = {
-            id: Date.now(),
-            title: this.tripleRule.title,
-            label: this.tripleRule.label,
-            type: 'triple',
-            ignore: false,
-            value: this.tripleRule.value
-          }
-          this.checkRules.push(rule)
-        }
-        Object.assign(this.$data.tripleRule, this.$options.data().tripleRule)
-      }
-    },
     saveDmzRule() {
-      if (this.dmzRule.value[0].value.length === 0 &&
-          this.dmzRule.value[1].value.length === 0 &&
-          this.dmzRule.value[2].value.length === 0
+      if (this.dmzRule.checks[0].values.length === 0 &&
+          this.dmzRule.checks[1].values.length === 0 &&
+          this.dmzRule.checks[2].values.length === 0
       ) {
         this.$message.warning('至少需要选择一个条件才能保存!')
         return
       }
-      if ((this.dmzRule.value[0].value.length !== 0 &&
-              this.dmzRule.value[0].count.length === 0) ||
-          (this.dmzRule.value[1].value.length !== 0 &&
-              this.dmzRule.value[1].count.length === 0) ||
-          (this.dmzRule.value[2].value.length !== 0 &&
-              this.dmzRule.value[2].count.length === 0)
+      if ((this.dmzRule.checks[0].values.length !== 0 &&
+              this.dmzRule.checks[0].counts.length === 0) ||
+          (this.dmzRule.checks[1].values.length !== 0 &&
+              this.dmzRule.checks[1].counts.length === 0) ||
+          (this.dmzRule.checks[2].values.length !== 0 &&
+              this.dmzRule.checks[2].counts.length === 0)
       ) {
         this.$message.warning('胆组出现个数必选')
         return
       }
       if (this.dmzRule.id) {
         let rule = this.checkRules.find(item => item.id === this.dmzRule.id)
-        rule.value[0].value = this.dmzRule.value[0].value
-        rule.value[0].count = this.dmzRule.value[0].count
-        rule.value[1].value = this.dmzRule.value[1].value
-        rule.value[1].count = this.dmzRule.value[1].count
-        rule.value[2].value = this.dmzRule.value[2].value
-        rule.value[2].count = this.dmzRule.value[2].count
+        rule.checks[0].values = this.dmzRule.checks[0].values
+        rule.checks[0].counts = this.dmzRule.checks[0].counts
+        rule.checks[1].values = this.dmzRule.checks[1].values
+        rule.checks[1].counts = this.dmzRule.checks[1].counts
+        rule.checks[2].values = this.dmzRule.checks[2].values
+        rule.checks[2].counts = this.dmzRule.checks[2].counts
       } else {
         let rule = {
           id: Date.now(),
@@ -605,13 +520,13 @@ export default {
           label: this.dmzRule.label,
           type: 'dmz',
           ignore: false,
-          value: this.dmzRule.value
+          checks: this.dmzRule.checks
         }
         this.checkRules.push(rule)
       }
       Object.assign(this.$data.dmzRule, this.$options.data().dmzRule)
     },
-    saveRule() {
+    saveConfig() {
       let config = {
         rule: this.checkRules,
         hun: this.hundredList,
@@ -626,8 +541,8 @@ export default {
       window.electron.setConfig('config', config)
       this.$message.success('保存条件成功')
     },
-    copyResult(){
-      if (this.resultList.length === 0){
+    copyResult() {
+      if (this.resultList.length === 0) {
         this.$message.error('结果为空无法复制')
         return
       }

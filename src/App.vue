@@ -367,6 +367,8 @@ export default {
     },
     delRule(index) {
       this.checkRules.splice(index, 1)
+      this.igMin = 0
+      this.igMax = 0
     },
     showRule(label) {
       if (label === 'jo') {

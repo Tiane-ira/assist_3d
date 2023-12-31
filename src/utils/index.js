@@ -3,20 +3,51 @@ export const filterCodes = (codeList, ruleList, igCounts) => {
     if (ruleList.length === 0) return codeList
     let restCodes = structuredClone(codeList) //剩余未过滤成功的code列表,如果为空即停止过滤
     let resultCodes = [] //最终得到的code列表
+    // 获取可以容错的条件下标数组
+    let igAllIndexArr = []
+    for (let i = 0; i < ruleList.length; i++) {
+        if (ruleList[i].ignore) {
+            igAllIndexArr.push(i)
+        }
+    }
+    // 获取所有容错条件下标子集,按照子数组和子数组元素之和进行倒叙排序
+    let subIgIndexArrList = subsets(igAllIndexArr).sort((arr1, arr2) => {
+        let lenDiff = arr2.length - arr1.length
+        if (lenDiff === 0) {
+            return arr2.reduce((pre, cur) => pre + cur, 0) - arr1.reduce((pre, cur) => pre + cur, 0)
+        }
+        return lenDiff
+    })
     for (let igCount of igCounts) {
-        let calcGroups = getCalcGroups(ruleList, igCount)
-        for (let calcGroup of calcGroups) {
-            let filterCodes = doFilter(codeList, calcGroup) //单次过滤得到的code列表
-            for (let filterCode of filterCodes) {
-                if (resultCodes.indexOf(filterCode) === -1) {
-                    resultCodes.push(filterCode)
-                    restCodes.splice(restCodes.indexOf(filterCode), 1)
+        let igIndexArrList = getIgIndexArrList(igCount, subIgIndexArrList) //获取当前容错数量的所有容错条件的组合可能
+        for (let igIndexArr of igIndexArrList) {
+            console.log('容错下标组', igIndexArrList)
+            let calcGroups = getCalcGroups(ruleList, igIndexArr)
+            console.log('当前容错计算项', igIndexArr, calcGroups)
+            for (let calcGroup of calcGroups) {
+                let filterCodes = doFilter(codeList, calcGroup) //单次过滤得到的code列表
+                console.log('过滤结果', calcGroup, filterCodes)
+                for (let filterCode of filterCodes) {
+                    if (resultCodes.indexOf(filterCode) === -1) {
+                        resultCodes.push(filterCode)
+                        restCodes.splice(restCodes.indexOf(filterCode), 1)
+                    }
                 }
+                if (restCodes.length === 0) break
             }
-            if (restCodes.length === 0) break
         }
     }
     return resultCodes
+}
+
+function getIgIndexArrList(igCount, subIgIndexArrList) {
+    let igIndexArrList = []
+    for (let subArr of subIgIndexArrList) {
+        if (subArr.length === igCount) {
+            igIndexArrList.push(subArr)
+        }
+    }
+    return igIndexArrList
 }
 
 export const getIgCounts = (min, max) => {
@@ -73,6 +104,7 @@ function checkCode(code, calcItem) {
         return count === 0
     }
     if (calcItem.withdraw) {
+        console.log('zoule')
         if (label === 'jo') {
             let jCount = 0
             for (let num of [hun, ten, bit]) {
@@ -138,7 +170,7 @@ function checkCode(code, calcItem) {
             return [highDiff, midDiff, lowDiff].indexOf(parseInt(calcItem.ruleValue)) > -1
         } else if (label === 'zdz') {
             let max = Math.max(hun, ten, bit)
-            return max === calcItem.ruleValue
+            return max === parseInt(calcItem.ruleValue)
         } else if (label === 'zjz') {
             let arr = [hun, ten, bit].sort()
             return arr[1] === parseInt(calcItem.ruleValue)
@@ -168,19 +200,21 @@ function contains(arrList, arr) {
     return contains
 }
 
-function getCalcGroups(ruleList, igCount) {
+function getCalcGroups(ruleList, igIndexArr) {
     if (ruleList.length === 0) return []
     //将规则转换成规则项组
     let ruleGroups = []
     let ruleGroupLens = []
     let maxLen = 0
-    for (let rule of ruleList) {
+    for (let i = 0; i < ruleList.length; i++) {
+        let rule = ruleList[i]
+        let withdraw = igIndexArr.indexOf(i) > -1 //当前规则组是否进行容错
         let ruleGroup = []
         if (rule.label === 'dmz') {
             ruleGroup.push(rule)
         } else {
             for (let ruleValue of rule.checks) {
-                ruleGroup.push({label: rule.label, ruleValue, withdraw: false})
+                ruleGroup.push({label: rule.label, ruleValue, withdraw})
             }
         }
         ruleGroups.push(ruleGroup)
@@ -404,16 +438,14 @@ function getBsList(numList) {
         for (let second of orderList) {
             for (let third of orderList) {
                 if (first !== second && second !== third && first !== third) {
+                    let bitList = [first, second, third].sort((a, b) => a - b)
                     let incrFirst = szIncrement(first)
                     let incrSecond = szIncrement(second)
                     // console.log(first,second,third,incrFirst,incrSecond)
                     if ((incrFirst === second && incrSecond !== third) || (incrFirst !== second && incrSecond === third)) {
-                        let code = `${first}${second}${third}`
-                        let bitList = [first, second, third].sort((a, b) => a - b)
-                        if (resArr.findIndex(item => {
-                            let itemBitList = [item[0], item[1], item[2]].sort((a, b) => a - b)
-                            return itemBitList === bitList
-                        }) === -1) {
+                        let code = `${bitList[0]}${bitList[1]}${bitList[2]}`
+
+                        if (resArr.indexOf(code) === -1 && !isShunZi(code)) {
                             resArr.push(code)
                         }
                     }
@@ -423,6 +455,10 @@ function getBsList(numList) {
     }
     // console.log(resArr)
     return resArr
+}
+
+function isShunZi(code){
+    return szIncrement(code[0]) === code[1] && szIncrement(code[1]) === code[2]
 }
 
 //杂六:竟猜三位开奖号码，即百位、十位和个位，百位、十位和个位都不相同且互不相邻

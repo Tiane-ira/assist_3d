@@ -7,14 +7,14 @@
   "private": true,
   "scripts": {
     "start": "vue-cli-service electron:serve",
-    "build": "vue-cli-service electron:build",
+    "build": "set NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service electron:build",
     "postinstall": "electron-builder install-app-deps",
     "postuninstall": "electron-builder install-app-deps",
     "icon": "electron-icon-builder --input=./public/icon.png --output=build --flatten"
   },
   "main": "background.js",
   "dependencies": {
-    "core-js": "^3.8.3",
+    "core-js": "^3.35.0",
     "electron-store": "^8.1.0",
     "element-ui": "^2.15.14",
     "node-sass": "^9.0.0",

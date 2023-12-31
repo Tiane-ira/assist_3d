@@ -70,6 +70,7 @@
             <el-button class="rule" size="small" type="info" @click="showRule('zdz')">最大值</el-button>
             <el-button class="rule" size="small" type="info" @click="showRule('zjz')">中间值</el-button>
             <el-button class="rule" size="small" type="info" @click="showRule('zxz')">最小值</el-button>
+            <el-button class="rule" size="small" type="info" @click="showRule('hz2')">合值</el-button>
           </div>
           <div>
             <el-button class="rule" size="small" type="info" @click="showRule('dzx')">大中小</el-button>
@@ -421,6 +422,11 @@ export default {
         this.normalRule.label = label
         this.normalRule.title = '012路'
         this.normalRule.valList = structuredClone(all012l)
+      } else if (label === 'hz2') {
+        this.normalRule.show = true
+        this.normalRule.label = label
+        this.normalRule.title = '合值'
+        this.normalRule.valList = getSeqArr(9)
       } else if (label === 'dmz') {
         this.dmzRule.show = true
         this.dmzRule.label = label

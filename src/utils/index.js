@@ -143,6 +143,9 @@ function checkCode(code, calcItem) {
         } else if (label === '012l') {
             let tLabel = get012Label([hun, ten, label])
             return tLabel !== calcItem.ruleValue
+        } else if (label === 'hz2') {
+            let hz = (hun + ten + bit) % 10
+            return hz !== parseInt(calcItem.ruleValue)
         }
     } else {
         if (label === 'jo') {
@@ -183,6 +186,9 @@ function checkCode(code, calcItem) {
         } else if (label === '012l') {
             let tLabel = get012Label([hun, ten, label])
             return tLabel === calcItem.ruleValue
+        } else if (label === 'hz2') {
+            let hz = (hun + ten + bit) % 10
+            return hz === parseInt(calcItem.ruleValue)
         }
     }
 }
@@ -457,7 +463,7 @@ function getBsList(numList) {
     return resArr
 }
 
-function isShunZi(code){
+function isShunZi(code) {
     return szIncrement(code[0]) === code[1] && szIncrement(code[1]) === code[2]
 }
 

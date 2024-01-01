@@ -99,5 +99,3 @@ ipcMain.handle('getConfig', (e, key) => {
 ipcMain.handle('copy2Clipboard', (e, data) => {
     clipboard.writeText(data)
 })
-
-console.log(app.getPath('userData'))

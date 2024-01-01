@@ -8,8 +8,6 @@
   "scripts": {
     "start": "vue-cli-service electron:serve",
     "build": "set NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service electron:build",
-    "postinstall": "electron-builder install-app-deps",
-    "postuninstall": "electron-builder install-app-deps",
     "icon": "electron-icon-builder --input=./public/icon.png --output=build --flatten"
   },
   "main": "background.js",

@@ -23,11 +23,7 @@ async function createWindow() {
         autoHideMenuBar: true,
         icon: 'build/icons/icon.ico',
         webPreferences: {
-
-            // Use pluginOptions.nodeIntegration, leave this alone
-            // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
             nodeIntegration: true,
-            // contextIsolation: false,
             preload: path.resolve(__dirname, 'preload.js'),
             devTools: isDevelopment // 禁用开发者工具
         }
@@ -103,3 +99,5 @@ ipcMain.handle('getConfig', (e, key) => {
 ipcMain.handle('copy2Clipboard', (e, data) => {
     clipboard.writeText(data)
 })
+
+console.log(app.getPath('userData'))

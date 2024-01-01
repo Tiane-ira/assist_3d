@@ -62,20 +62,21 @@
         </el-tabs>
         <div class="rule-group">
           <div>
-            <el-button class="rule" size="small" type="info" @click="showRule('jo')">奇偶</el-button>
-            <el-button class="rule" size="small" type="info" @click="showRule('hz')">和值</el-button>
-            <el-button class="rule" size="small" type="info" @click="showRule('kd')">跨度</el-button>
-            <el-button class="rule" size="small" type="info" @click="showRule('lmh')">两码和</el-button>
-            <el-button class="rule" size="small" type="info" @click="showRule('lmc')">两码差</el-button>
-            <el-button class="rule" size="small" type="info" @click="showRule('zdz')">最大值</el-button>
-            <el-button class="rule" size="small" type="info" @click="showRule('zjz')">中间值</el-button>
-            <el-button class="rule" size="small" type="info" @click="showRule('zxz')">最小值</el-button>
-            <el-button class="rule" size="small" type="info" @click="showRule('hz2')">合值</el-button>
+            <el-button class="rule" size="small" type="success" @click="showRule('hz2')">合值</el-button>
+            <el-button class="rule" size="small" type="success" @click="showRule('kd')">跨度</el-button>
+            <el-button class="rule" size="small" type="success" @click="showRule('012l')">012路</el-button>
+            <el-button class="rule" size="small" type="success" @click="showRule('dzx')">大中小</el-button>
+            <el-button class="rule" size="small" type="success" @click="showRule('lmc')">两码差</el-button>
+            <el-button class="rule" size="small" type="success" @click="showRule('lmh')">两码和</el-button>
+            <!--<el-button class="rule" size="small" type="success" @click="showRule('zjz')">中间值</el-button>-->
+            <!--<el-button class="rule" size="small" type="success" @click="showRule('zxz')">最小值</el-button>-->
           </div>
           <div>
-            <el-button class="rule" size="small" type="info" @click="showRule('dzx')">大中小</el-button>
-            <el-button class="rule" size="small" type="info" @click="showRule('012l')">012路</el-button>
-            <el-button class="rule" size="small" type="info" @click="showRule('dmz')">胆码组</el-button>
+            <el-button class="rule" size="small" type="success" @click="showRule('mcsm')">码差三码</el-button>
+            <el-button class="rule" size="small" type="success" @click="showRule('zdz')">最大值</el-button>
+            <el-button class="rule" size="small" type="success" @click="showRule('dmz')">胆码组</el-button>
+            <el-button class="rule" size="small" type="success" @click="showRule('hz')">和值</el-button>
+            <el-button class="rule" size="small" type="success" @click="showRule('jo')">奇偶</el-button>
           </div>
         </div>
         <div class="rule-check">
@@ -100,7 +101,7 @@
                 <div v-for="(child,index) in item.checks" :key="index">
                   <span style="margin-right: 5px">{{ child.label }}:</span>
                   <span style="margin-right: 10px">{{ child.values }}</span>
-                  <span style="margin-right: 5px">出现次数:</span>
+                  <span style="margin-right: 5px">出现个数:</span>
                   <span>{{ child.counts }}</span>
                 </div>
               </div>
@@ -133,7 +134,7 @@
         </div>
       </el-col>
       <el-col :span="12" class="top-right">
-        <div class="operate">
+        <div class="op">
           <el-button type="primary" :loading="loading" @click="getResult">获取结果</el-button>
           <el-button type="warning" @click="saveConfig">保存条件</el-button>
           <el-button type="warning" :disabled="!resultList.length" @click="copyResult">复制结果</el-button>
@@ -141,6 +142,7 @@
         <div class="data">
           <el-table
               :data="resultList"
+              @sort-change="sortChange"
               max-height="350"
               style="width: 100%;"
               :border="true"
@@ -193,6 +195,9 @@
               </template>
             </el-table-column>
           </el-table>
+          <div class="op-res">
+            {{ codesResult }}
+          </div>
           <div class="statistic">
             <el-row :gutter="20">
               <el-col :span="12">
@@ -244,7 +249,7 @@
           </el-checkbox-group>
           <div class="title"><span>出现:</span></div>
           <el-checkbox-group v-model="rule.counts" size="mini">
-            <el-checkbox v-for="count in 4" :label="count-1" :key="count-1">{{ count - 1 }}次</el-checkbox>
+            <el-checkbox v-for="count in 4" :label="count-1" :key="count-1">{{ count - 1 }}个</el-checkbox>
           </el-checkbox-group>
         </div>
       </div>
@@ -263,8 +268,13 @@ import {filterCodes, getIgCounts, getNumDirect, getNumGroup, getNumObjByCodes, g
 const allNum = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 const allType = ['豹子', '组三', '组六', '顺子', '半顺', '杂六']
 const allJiOu = ['3奇', '2奇1偶', '1奇2偶', '3偶']
-const allDzx = ['大大大', '大大中', '大中中', '中中中', '中中小', '中小小', '小小小', '大大小', '大小小']
-const all012l = ['000', '001', '011', '111', '112', '122', '222', '002', '022']
+const allDzx = ['小小小', '小小中', '小中中', '中中中', '小中大', '小小大', '中中大', '小大大', '中大大', '大大大']
+const all012l = ['000', '001', '002', '011', '022', '012', '111', '112', '122', '222']
+const allMCSM = [
+    '000', '011', '022', '033', '044', '055', '066', '077', '088', '099',
+    '112', '123', '134', '145', '156', '178', '189', '224', '235', '246',
+    '257', '268', '279', '336', '347', '358', '369', '448', '459'
+]
 export default {
   name: 'App',
   data() {
@@ -302,7 +312,8 @@ export default {
           {label: '', values: [], counts: []},
         ]
       },
-      savePath: ''
+      savePath: '',
+      codesResult: ''
     }
   },
   computed: {
@@ -311,6 +322,11 @@ export default {
     },
     igNum() {
       return this.checkRules.reduce((pre, cur) => cur.ignore ? pre + 1 : pre, 0)
+    },
+    codeList() {
+      let codeList = []
+      this.resultList.forEach(item => codeList.push(item.code))
+      return codeList
     }
   },
   methods: {
@@ -359,8 +375,14 @@ export default {
       let igCounts = getIgCounts(this.igMin, this.igMax) // 默认0-0无容错
       let filteredCodeList = filterCodes(codeList, this.checkRules, igCounts)
       this.resultList = getNumObjByCodes(filteredCodeList)
+      this.codesResult = filteredCodeList.join(' ')
       this.loading = false
       this.$message.success("结果计算成功");
+    },
+    sortChange() {
+      let codeList = []
+      this.$refs.table.tableData.forEach(item => codeList.push(item.code))
+      this.codesResult = codeList.join(' ')
     },
     delCode(row) {
       let index = this.resultList.findIndex(item => item.code === row.code)
@@ -427,6 +449,11 @@ export default {
         this.normalRule.label = label
         this.normalRule.title = '合值'
         this.normalRule.valList = getSeqArr(9)
+      } else if (label === 'mcsm') {
+        this.normalRule.show = true
+        this.normalRule.label = label
+        this.normalRule.title = '码差三码'
+        this.normalRule.valList = structuredClone(allMCSM)
       } else if (label === 'dmz') {
         this.dmzRule.show = true
         this.dmzRule.label = label
@@ -554,13 +581,8 @@ export default {
         this.$message.error('结果为空无法复制')
         return
       }
-      let orderObjList = this.$refs.table.tableData
-      let copyList = []
-      for (let obj of orderObjList) {
-        copyList.push(obj.code)
-      }
-      window.electron.copy2Clipboard(copyList.join(' '))
-      this.$message.success(`已复制${copyList.length}个结果`)
+      window.electron.copy2Clipboard(this.codesResult)
+      this.$message.success(`已复制${this.resultList.length}个结果`)
     }
   },
   mounted() {
@@ -617,8 +639,15 @@ export default {
 }
 
 .top-right {
-  .operate {
+  .op {
     margin: 10px;
+  }
+
+  .op-res {
+    margin-top: 10px;
+    padding: 10px;
+    font-size: 12px;
+    border: 1px solid #e3e3e3;
   }
 
   .data {

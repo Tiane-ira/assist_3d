@@ -29,6 +29,7 @@ async function createWindow() {
             nodeIntegration: true,
             // contextIsolation: false,
             preload: path.resolve(__dirname, 'preload.js'),
+            devTools: isDevelopment // 禁用开发者工具
         }
     })
 

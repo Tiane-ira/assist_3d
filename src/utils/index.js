@@ -84,70 +84,83 @@ function checkCode(code, calcItem) {
     if (label === 'dmz') {
         let dmzRules = calcItem.checks.filter(item => item.values.length > 0)
         // 胆码组无容错
-        let data = new Map()
-        for (let num of [hun, ten, bit]) {
-            if (data.has(num)) {
-                data.set(num, data.get(num) + 1)
-            } else {
-                data.set(num, 1)
-            }
-        }
         let count = dmzRules.length
         for (let dmzRule of dmzRules) {
-            for (let num of data.keys()) {
-                let numCount = data.get(num) //num值出现次数
-                if (dmzRule.values.indexOf(num) > -1 && dmzRule.counts.indexOf(numCount) > -1) {
-                    count--
+            let bitCount = 0
+            for (let num of [hun, ten, bit]) {
+                if (dmzRule.values.indexOf(num) > -1) {
+                    bitCount++
                 }
             }
+            if (dmzRule.counts.indexOf(bitCount) > -1) count--
         }
         return count === 0
-    }
-    if (calcItem.withdraw) {
-        console.log('zoule')
+    } else if (calcItem.ignore) {
+        let checks = calcItem.checks
+        // 容错计算
         if (label === 'jo') {
             let jCount = 0
             for (let num of [hun, ten, bit]) {
                 if (num % 2 === 1) jCount++
             }
-            let tCount = 3 - allJiOu.indexOf(calcItem.ruleValue)
-            return tCount !== jCount
+            let ruleJiOuCounts = []
+            for (let item of checks) {
+                let jiOuCount = allJiOu.findIndex(val => item === val)
+                if (jiOuCount > -1) {
+                    ruleJiOuCounts.push(jiOuCount)
+                }
+            }
+            return ruleJiOuCounts.indexOf(jCount) === -1
         } else if (label === 'hz') {
             let sum = hun + ten + bit
-            return sum !== parseInt(calcItem.ruleValue)
+            return checks.indexOf(sum.toString()) === -1
         } else if (label === 'kd') {
             let diff = Math.max(hun, ten, bit) - Math.min(hun, ten, bit)
-            return diff !== parseInt(calcItem.ruleValue)
+            return checks.indexOf(diff.toString()) === -1
         } else if (label === 'lmh') {
             let highSum = hun + ten
             let midSum = hun + bit
             let lowSum = ten + bit
-            return [highSum, midSum, lowSum].indexOf(parseInt(calcItem.ruleValue)) === -1
+            for (let sum of [highSum, midSum, lowSum]) {
+                if (checks.indexOf(sum.toString()) > -1) return false
+            }
+            return true
         } else if (label === 'lmc') {
             let highDiff = Math.abs(hun - ten)
             let midDiff = Math.abs(hun - bit)
             let lowDiff = Math.abs(ten - bit)
-            return [highDiff, midDiff, lowDiff].indexOf(parseInt(calcItem.ruleValue)) === -1
+            for (let diff of [highDiff, midDiff, lowDiff]) {
+                if (checks.indexOf(diff.toString()) > -1) return false
+            }
+            return true
         } else if (label === 'zdz') {
             let max = Math.max(hun, ten, bit)
-            return max !== parseInt(calcItem.ruleValue)
+            return checks.indexOf(max.toString()) === -1
         } else if (label === 'zjz') {
             let arr = [hun, ten, bit].sort()
-            return arr[1] !== parseInt(calcItem.ruleValue)
+            return checks.indexOf(arr[1].toString()) === -1
         } else if (label === 'zxz') {
             let min = Math.max(hun, ten, bit)
-            return min !== parseInt(calcItem.ruleValue)
+            return checks.indexOf(min.toString()) === -1
         } else if (label === 'dzx') {
-            let tLabel = getDzxLabel([hun, ten, label])
-            return tLabel !== calcItem.ruleValue
+            let tLabel = getDzxLabel([hun, ten, bit])
+            return checks.indexOf(tLabel) === -1
         } else if (label === '012l') {
-            let tLabel = get012Label([hun, ten, label])
-            return tLabel !== calcItem.ruleValue
+            let tLabel = get012Label([hun, ten, bit])
+            return checks.indexOf(tLabel) === -1
         } else if (label === 'hz2') {
             let hz = (hun + ten + bit) % 10
-            return hz !== parseInt(calcItem.ruleValue)
+            return checks.indexOf(hz.toString()) === -1
+        } else if (label === 'mcsm') {
+            let highDiff = Math.abs(hun - ten)
+            let midDiff = Math.abs(hun - bit)
+            let lowDiff = Math.abs(ten - bit)
+            let diffArr = [highDiff, midDiff, lowDiff].sort()
+            let diffCode = `${diffArr[0]}${diffArr[1]}${diffArr[2]}`
+            return checks.indexOf(diffCode) === -1
         }
     } else {
+        // 正常条件排列项计算
         if (label === 'jo') {
             let jCount = 0
             for (let num of [hun, ten, bit]) {
@@ -181,14 +194,22 @@ function checkCode(code, calcItem) {
             let min = Math.max(hun, ten, bit)
             return min === parseInt(calcItem.ruleValue)
         } else if (label === 'dzx') {
-            let tLabel = getDzxLabel([hun, ten, label])
+            let tLabel = getDzxLabel([hun, ten, bit])
+            // console.log("dzx过滤", code, tLabel, dmzRule)
             return tLabel === calcItem.ruleValue
         } else if (label === '012l') {
-            let tLabel = get012Label([hun, ten, label])
+            let tLabel = get012Label([hun, ten, bit])
             return tLabel === calcItem.ruleValue
         } else if (label === 'hz2') {
             let hz = (hun + ten + bit) % 10
             return hz === parseInt(calcItem.ruleValue)
+        }else if (label === 'mcsm') {
+            let highDiff = Math.abs(hun - ten)
+            let midDiff = Math.abs(hun - bit)
+            let lowDiff = Math.abs(ten - bit)
+            let diffArr = [highDiff, midDiff, lowDiff].sort()
+            let diffCode = `${diffArr[0]}${diffArr[1]}${diffArr[2]}`
+            return diffCode === calcItem.ruleValue
         }
     }
 }
@@ -216,11 +237,12 @@ function getCalcGroups(ruleList, igIndexArr) {
         let rule = ruleList[i]
         let withdraw = igIndexArr.indexOf(i) > -1 //当前规则组是否进行容错
         let ruleGroup = []
-        if (rule.label === 'dmz') {
+        // 胆码组和容错得条件当成一整个计算项进行计算
+        if ((rule.label === 'dmz') || (rule.ignore && withdraw)) {
             ruleGroup.push(rule)
         } else {
             for (let ruleValue of rule.checks) {
-                ruleGroup.push({label: rule.label, ruleValue, withdraw})
+                ruleGroup.push({label: rule.label, ruleValue})
             }
         }
         ruleGroups.push(ruleGroup)
@@ -445,15 +467,9 @@ function getBsList(numList) {
             for (let third of orderList) {
                 if (first !== second && second !== third && first !== third) {
                     let bitList = [first, second, third].sort((a, b) => a - b)
-                    let incrFirst = szIncrement(first)
-                    let incrSecond = szIncrement(second)
-                    // console.log(first,second,third,incrFirst,incrSecond)
-                    if ((incrFirst === second && incrSecond !== third) || (incrFirst !== second && incrSecond === third)) {
-                        let code = `${bitList[0]}${bitList[1]}${bitList[2]}`
-
-                        if (resArr.indexOf(code) === -1 && !isShunZi(code)) {
-                            resArr.push(code)
-                        }
+                    let code = `${bitList[0]}${bitList[1]}${bitList[2]}`
+                    if (resArr.indexOf(code) === -1 && isBanShun(code) && !isShunZi(code)) {
+                        resArr.push(code)
                     }
                 }
             }
@@ -464,7 +480,15 @@ function getBsList(numList) {
 }
 
 function isShunZi(code) {
-    return szIncrement(code[0]) === code[1] && szIncrement(code[1]) === code[2]
+    let codeArr = [code[0], code[1], code[2]].sort()
+    return (szIncrement(codeArr[0]) === codeArr[1] && szIncrement(codeArr[1]) === codeArr[2]) ||
+        (szIncrement(codeArr[1]) === codeArr[2] && szIncrement(codeArr[2]) === codeArr[0]) ||
+        (szIncrement(codeArr[2]) === codeArr[0] && szIncrement(codeArr[0]) === codeArr[1])
+}
+
+function isBanShun(code) {
+    let codeArr = [code[0], code[1], code[2]].sort()
+    return szIncrement(codeArr[0]) === codeArr[1] || szIncrement(codeArr[1]) === codeArr[2] || szIncrement(codeArr[2]) === codeArr[0]
 }
 
 //杂六:竟猜三位开奖号码，即百位、十位和个位，百位、十位和个位都不相同且互不相邻
@@ -476,13 +500,9 @@ function getZalList(numList) {
             for (let third of orderList) {
                 if (first !== second && second !== third && first !== third) {
                     let bitList = [first, second, third].sort((a, b) => a - b)
-                    let incrFirst = szIncrement(bitList[0])
-                    let incrSecond = szIncrement(bitList[1])
-                    if (incrFirst !== bitList[1] && incrSecond !== bitList[2]) {
-                        let code = `${bitList[0]}${bitList[1]}${bitList[2]}`
-                        if (resArr.indexOf(code) === -1) {
-                            resArr.push(code)
-                        }
+                    let code = `${bitList[0]}${bitList[1]}${bitList[2]}`
+                    if (resArr.indexOf(code) === -1 && !isShunZi(code) && !isBanShun(code)) {
+                        resArr.push(code)
                     }
                 }
             }
@@ -526,26 +546,28 @@ export const getNumObjByCodes = (codeList) => {
     return objList
 }
 
+let dzxArr = ['小', '中', '大']
+
 function getDzxLabel(bitList) {
-    let label = ''
+    let labelArr = []
     for (let num of bitList) {
         if (num >= 0 && num <= 2) {
-            label += '小'
+            labelArr.push('小')
         } else if (num >= 3 && num <= 6) {
-            label += '中'
+            labelArr.push('中')
         } else {
-            label += '大'
+            labelArr.push('大')
         }
     }
-    return label
+    return labelArr.sort((a, b) => dzxArr.indexOf(a) - dzxArr.indexOf(b)).join('')
 }
 
 function get012Label(bitList) {
-    let label = ''
+    let labelArr = []
     for (let num of bitList) {
-        label += num % 3
+        labelArr.push(num % 3)
     }
-    return label
+    return labelArr.sort().join('')
 }
 
 

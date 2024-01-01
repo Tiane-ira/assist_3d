@@ -1,5 +1,9 @@
 # assist_3d
 
+## version
+
+* node:18.x
+
 ## Project setup
 ```
 npm install

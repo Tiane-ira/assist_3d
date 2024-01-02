@@ -21,12 +21,15 @@ export const filterCodes = (codeList, ruleList, igCounts) => {
     for (let igCount of igCounts) {
         let igIndexArrList = getIgIndexArrList(igCount, subIgIndexArrList) //获取当前容错数量的所有容错条件的组合可能
         for (let igIndexArr of igIndexArrList) {
-            console.log('容错下标组', igIndexArrList)
-            let calcGroups = getCalcGroups(ruleList, igIndexArr)
-            console.log('当前容错计算项', igIndexArr, calcGroups)
+            // console.log('容错下标组', igIndexArrList)
+            let calcGroups = getCalcGroups2(ruleList, igIndexArr)
+            // console.log('当前容错计算项', igIndexArr, calcGroups)
             for (let calcGroup of calcGroups) {
                 let filterCodes = doFilter(codeList, calcGroup) //单次过滤得到的code列表
-                console.log('过滤结果', calcGroup, filterCodes)
+                console.log('过滤条件', calcGroup[0].label + ":" + calcGroup[0].ruleValue,
+                    calcGroup[1].label + ":" + calcGroup[1].ruleValue,
+                    calcGroup[2].label + ":" + calcGroup[2].ruleValue, '结果:', filterCodes.join())
+                // console.log('过滤结果', filterCodes)
                 for (let filterCode of filterCodes) {
                     if (resultCodes.indexOf(filterCode) === -1) {
                         resultCodes.push(filterCode)
@@ -35,6 +38,7 @@ export const filterCodes = (codeList, ruleList, igCounts) => {
                 }
                 if (restCodes.length === 0) break
             }
+            console.log('条件数:', calcGroups.length, '最终结果数:', resultCodes.length)
         }
     }
     return resultCodes
@@ -203,7 +207,7 @@ function checkCode(code, calcItem) {
         } else if (label === 'hz2') {
             let hz = (hun + ten + bit) % 10
             return hz === parseInt(calcItem.ruleValue)
-        }else if (label === 'mcsm') {
+        } else if (label === 'mcsm') {
             let highDiff = Math.abs(hun - ten)
             let midDiff = Math.abs(hun - bit)
             let lowDiff = Math.abs(ten - bit)
@@ -300,6 +304,87 @@ function getCalcGroups(ruleList, igIndexArr) {
         calcGroups.push(calcGroup)
     }
     return calcGroups
+}
+
+function getCalcGroups2(ruleList, igIndexArr) {
+    if (ruleList.length === 0) return []
+    //将规则转换成规则项组
+    let ruleGroups = []
+    let ruleGroupLens = []
+    let maxLen = 0
+    for (let i = 0; i < ruleList.length; i++) {
+        let rule = ruleList[i]
+        let withdraw = igIndexArr.indexOf(i) > -1 //当前规则组是否进行容错
+        let ruleGroup = []
+        // 胆码组和容错得条件当成一整个计算项进行计算
+        if ((rule.label === 'dmz') || (rule.ignore && withdraw)) {
+            ruleGroup.push(rule)
+        } else {
+            for (let ruleValue of rule.checks) {
+                ruleGroup.push({label: rule.label, ruleValue})
+            }
+        }
+        ruleGroups.push(ruleGroup)
+        ruleGroupLens.push(ruleGroup.length)
+        maxLen = Math.max(maxLen, ruleGroup.length) //最大优先下标+1值
+    }
+    //将规则组中每组排序计算得到规则项组
+    let indexGroups = []
+    let allIndexGroups = []
+    for (let len of ruleGroupLens) {
+        allIndexGroups.push([...new Array(len).keys()])
+    }
+    combine(allIndexGroups, indexGroups)
+    clearTemp()
+    sortIndexArrAsc(indexGroups)
+    //根据indexGroups获取从ruleGroups中获取对用的计算项
+    let calcGroups = []
+    let len = ruleGroups.length
+    for (let indexGroup of indexGroups) {
+        let calcGroup = []
+        for (let i = 0; i < len; i++) {
+            calcGroup.push(ruleGroups[i][indexGroup[i]])
+        }
+        calcGroups.push(calcGroup)
+    }
+    return calcGroups
+}
+
+let temp = []
+
+function combine(arr, results, index = 0) {
+    arr[index].forEach(item => {
+        temp[index] = item
+        index + 1 < arr.length
+            ? combine(arr, results, index + 1)
+            : results.push(temp.slice())
+    })
+}
+
+function clearTemp() {
+    temp = []
+}
+
+function sortIndexArrAsc(arr) {
+    // 最小值排序
+    // 最小值个数
+    // 跨度
+    // 最后按照顺序
+    arr.sort((arr1, arr2) => {
+        let minDiff = Math.min(...arr1) - Math.min(...arr2)
+        if (minDiff !== 0) return minDiff
+        let min = Math.min(...arr1)
+        let countDiff = arr2.reduce((pre, cur) => cur === min ? pre + 1 : pre, 0) - arr1.reduce((pre, cur) => cur === min ? pre + 1 : pre, 0)
+        if (countDiff !== 0) return countDiff
+        let diff = arr1.reduce((pre, cur) => pre + cur, 0) - arr2.reduce((pre, cur) => pre + cur, 0)
+        if (diff !== 0) return diff
+        for (let i = 0; i < arr1.length; i++) {
+            if (arr1[i] !== arr2[i]) {
+                return arr1[i] - arr2[i]
+            }
+        }
+        return 0
+    })
 }
 
 function subsets(nums) {

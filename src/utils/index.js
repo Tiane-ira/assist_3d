@@ -26,9 +26,6 @@ export const filterCodes = (codeList, ruleList, igCounts) => {
             // console.log('当前容错计算项', igIndexArr, calcGroups)
             for (let calcGroup of calcGroups) {
                 let filterCodes = doFilter(codeList, calcGroup) //单次过滤得到的code列表
-                console.log('过滤条件', calcGroup[0].label + ":" + calcGroup[0].ruleValue,
-                    calcGroup[1].label + ":" + calcGroup[1].ruleValue,
-                    calcGroup[2].label + ":" + calcGroup[2].ruleValue, '结果:', filterCodes.join())
                 // console.log('过滤结果', filterCodes)
                 for (let filterCode of filterCodes) {
                     if (resultCodes.indexOf(filterCode) === -1) {
@@ -231,6 +228,7 @@ function contains(arrList, arr) {
     return contains
 }
 
+// eslint-disable-next-line no-unused-vars
 function getCalcGroups(ruleList, igIndexArr) {
     if (ruleList.length === 0) return []
     //将规则转换成规则项组

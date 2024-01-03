@@ -87,7 +87,7 @@
                   <span>【{{ index + 1 }}】{{ item.title }}</span>
                 </div>
                 <div>
-                  <el-checkbox v-model="item.ignore" v-if="item.label!='dmz'" @change="changeIg"
+                  <el-checkbox v-model="item.ignore" v-if="item.label!=='dmz'" @change="changeIg"
                                style="margin-right: 10px">容错
                   </el-checkbox>
                   <el-button type="warning" size="small" @click="changeRule(index)">修改</el-button>
@@ -136,9 +136,9 @@
       <el-col :span="12" class="top-right">
         <div class="op">
           <el-button type="primary" :loading="loading" @click="getResult">获取结果</el-button>
-          <el-button type="primary" @click="saveConfig">保存条件</el-button>
-          <el-button type="warning" @click="hisShow=true">条件历史</el-button>
           <el-button type="warning" :disabled="!resultList.length" @click="copyResult">复制结果</el-button>
+          <el-button type="primary" :disabled="!checkRules.length" @click="showSaveRule">保存条件</el-button>
+          <el-button type="warning" @click="showRuleHis">条件历史</el-button>
         </div>
         <div class="data">
           <el-table
@@ -276,34 +276,57 @@
             align="center">
         </el-table-column>
         <el-table-column
+            prop="name"
+            label="名称"
+            align="center">
+        </el-table-column>
+        <el-table-column
             prop="label"
             label="条件"
-            align="center">
+            align="center"
+            show-overflow-tooltip
+        >
         </el-table-column>
         <el-table-column
             prop="createTime"
             label="保存时间"
-            align="center">
+            align="center"
+            width="160">
         </el-table-column>
         <el-table-column
             label="操作"
-            align="center">
+            align="center"
+            width="200">
           <template v-slot="{$index}">
             <el-button
                 @click.native.prevent="applyConfig($index)"
                 type="success"
-                size="small">
+                size="mini">
               使用
             </el-button>
             <el-button
                 @click.native.prevent="delConfig($index)"
                 type="danger"
-                size="small">
+                size="mini">
               删除
             </el-button>
           </template>
         </el-table-column>
       </el-table>
+    </el-dialog>
+
+    <el-dialog
+        title="保存条件"
+        :visible.sync="saveRuleShow"
+        width="60%"
+        center>
+      <div>
+        <el-input placeholder="输入条件集的名称" v-model="ruleName"></el-input>
+      </div>
+      <span slot="footer" class="dialog-footer">
+      <el-button @click="saveRuleShow=false">取 消</el-button>
+      <el-button type="primary" @click="saveConfig">保存</el-button>
+    </span>
     </el-dialog>
 
   </div>
@@ -369,7 +392,9 @@ export default {
       },
       codesResult: '',
       hisShow: false,
-      configList: []
+      configList: [],
+      saveRuleShow: false,
+      ruleName: ''
     }
   },
   computed: {
@@ -388,6 +413,7 @@ export default {
         }
         let his = {
           id: config.id,
+          name: config.name,
           label: labelArr.join(','),
           createTime: config.createTime
         }
@@ -629,21 +655,36 @@ export default {
       }
       Object.assign(this.$data.dmzRule, this.$options.data().dmzRule)
     },
+    showRuleHis() {
+      this.hisShow = true
+      this.loadConfigList()
+    },
+    loadConfigList() {
+      window.electron.getConfig('configList').then(configList => {
+        this.configList = configList || []
+      })
+    },
+    showSaveRule() {
+      this.ruleName = ''
+      this.saveRuleShow = true
+    },
     saveConfig() {
       let config = {
         id: Date.now(),
-        rule: this.checkRules,
-        hun: this.hundredList,
-        ten: this.tenList,
-        bit: this.bitList,
-        group: this.groupList,
-        groupType: this.groupTypes,
+        name: this.ruleName,
+        rule: structuredClone(this.checkRules),
+        hun: structuredClone(this.hundredList),
+        ten: structuredClone(this.tenList),
+        bit: structuredClone(this.bitList),
+        group: structuredClone(this.groupList),
+        groupType: structuredClone(this.groupTypes),
         igMin: this.igMin,
         igMax: this.igMax,
         createTime: formatDate(new Date())
       }
       this.configList.unshift(config)
       window.electron.setConfig('configList', this.configList)
+      this.saveRuleShow = false
       this.$message.success('保存条件成功')
     },
     delConfig(index) {
@@ -652,8 +693,7 @@ export default {
       this.$message.success('删除条件成功')
     },
     applyConfig(index) {
-      let config = this.configList[index]
-      console.log(config)
+      let config = structuredClone(this.configList[index])
       this.checkRules = config.rule || []
       this.hundredList = config.hun || []
       this.tenList = config.ten || []
@@ -676,10 +716,9 @@ export default {
   },
   mounted() {
     window.electron.getConfig('configList').then(configList => {
-      console.log('读取到系统配置:', configList)
-      this.configList = configList
-      if (configList.length > 0) {
-        let config = configList[0]
+      if (configList && configList.length > 0) {
+        this.configList = configList
+        let config = structuredClone(this.configList[0])
         this.checkRules = config.rule || []
         this.hundredList = config.hun || []
         this.tenList = config.ten || []

@@ -1,4 +1,6 @@
 //候选集codeList,根据规则列表中所有的索引组合出过滤项，通过过滤就加入结果集,直到候选集都通过或所有过滤项过滤完
+import moment from "moment";
+
 export const filterCodes = (codeList, ruleList, igCounts) => {
     if (ruleList.length === 0) return codeList
     let restCodes = structuredClone(codeList) //剩余未过滤成功的code列表,如果为空即停止过滤
@@ -364,21 +366,14 @@ function clearTemp() {
 }
 
 function sortIndexArrAsc(arr) {
-    // 最小值排序
-    // 最小值个数
-    // 跨度
-    // 最后按照顺序
+    // 按照最小值更小的排列
     arr.sort((arr1, arr2) => {
-        let minDiff = Math.min(...arr1) - Math.min(...arr2)
-        if (minDiff !== 0) return minDiff
-        let min = Math.min(...arr1)
-        let countDiff = arr2.reduce((pre, cur) => cur === min ? pre + 1 : pre, 0) - arr1.reduce((pre, cur) => cur === min ? pre + 1 : pre, 0)
-        if (countDiff !== 0) return countDiff
-        let diff = arr1.reduce((pre, cur) => pre + cur, 0) - arr2.reduce((pre, cur) => pre + cur, 0)
-        if (diff !== 0) return diff
-        for (let i = 0; i < arr1.length; i++) {
-            if (arr1[i] !== arr2[i]) {
-                return arr1[i] - arr2[i]
+        let len = arr1.length
+        let tmp1 = structuredClone(arr1).sort()
+        let tmp2 = structuredClone(arr2).sort()
+        for (let i = 0; i < len; i++) {
+            if (tmp1[i] !== tmp2[i]) {
+                return tmp1[i] - tmp2[i]
             }
         }
         return 0
@@ -651,6 +646,10 @@ function get012Label(bitList) {
         labelArr.push(num % 3)
     }
     return labelArr.sort().join('')
+}
+
+export const formatDate = (date,format='YYYY-MM-DD HH:mm:ss') => {
+    return moment(new Date(date).getTime()).format(format)
 }
 
 

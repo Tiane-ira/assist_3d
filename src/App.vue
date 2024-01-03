@@ -136,7 +136,8 @@
       <el-col :span="12" class="top-right">
         <div class="op">
           <el-button type="primary" :loading="loading" @click="getResult">获取结果</el-button>
-          <el-button type="warning" @click="saveConfig">保存条件</el-button>
+          <el-button type="primary" @click="saveConfig">保存条件</el-button>
+          <el-button type="warning" @click="hisShow=true">条件历史</el-button>
           <el-button type="warning" :disabled="!resultList.length" @click="copyResult">复制结果</el-button>
         </div>
         <div class="data">
@@ -258,12 +259,66 @@
       <el-button type="primary" @click="saveDmzRule">确 定</el-button>
     </span>
     </el-dialog>
+    <el-dialog
+        title="条件历史列表"
+        :visible.sync="hisShow"
+        width="60%"
+        center>
+      <el-table
+          :data="hisList"
+          :border="true"
+          :header-cell-style="{'text-align':'center'}"
+          ref="hisTable"
+      >
+        <el-table-column
+            label="序号"
+            type="index"
+            align="center">
+        </el-table-column>
+        <el-table-column
+            prop="label"
+            label="条件"
+            align="center">
+        </el-table-column>
+        <el-table-column
+            prop="createTime"
+            label="保存时间"
+            align="center">
+        </el-table-column>
+        <el-table-column
+            label="操作"
+            align="center">
+          <template v-slot="{$index}">
+            <el-button
+                @click.native.prevent="applyConfig($index)"
+                type="success"
+                size="small">
+              使用
+            </el-button>
+            <el-button
+                @click.native.prevent="delConfig($index)"
+                type="danger"
+                size="small">
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
 
   </div>
 </template>
 
 <script>
-import {filterCodes, getIgCounts, getNumDirect, getNumGroup, getNumObjByCodes, getSeqArr} from './utils/index'
+import {
+  filterCodes,
+  formatDate,
+  getIgCounts,
+  getNumDirect,
+  getNumGroup,
+  getNumObjByCodes,
+  getSeqArr
+} from './utils/index'
 
 const allNum = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 const allType = ['豹子', '组三', '组六', '顺子', '半顺', '杂六']
@@ -271,9 +326,9 @@ const allJiOu = ['3奇', '2奇1偶', '1奇2偶', '3偶']
 const allDzx = ['小小小', '小小中', '小中中', '中中中', '小中大', '小小大', '中中大', '小大大', '中大大', '大大大']
 const all012l = ['000', '001', '002', '011', '022', '012', '111', '112', '122', '222']
 const allMCSM = [
-    '000', '011', '022', '033', '044', '055', '066', '077', '088', '099',
-    '112', '123', '134', '145', '156', '178', '189', '224', '235', '246',
-    '257', '268', '279', '336', '347', '358', '369', '448', '459'
+  '000', '011', '022', '033', '044', '055', '066', '077', '088', '099',
+  '112', '123', '134', '145', '156', '178', '189', '224', '235', '246',
+  '257', '268', '279', '336', '347', '358', '369', '448', '459'
 ]
 export default {
   name: 'App',
@@ -312,8 +367,9 @@ export default {
           {label: '', values: [], counts: []},
         ]
       },
-      savePath: '',
-      codesResult: ''
+      codesResult: '',
+      hisShow: false,
+      configList: []
     }
   },
   computed: {
@@ -323,10 +379,21 @@ export default {
     igNum() {
       return this.checkRules.reduce((pre, cur) => cur.ignore ? pre + 1 : pre, 0)
     },
-    codeList() {
-      let codeList = []
-      this.resultList.forEach(item => codeList.push(item.code))
-      return codeList
+    hisList() {
+      let hisArr = []
+      for (let config of this.configList) {
+        let labelArr = []
+        for (let ruleItem of config.rule) {
+          labelArr.push(ruleItem.title)
+        }
+        let his = {
+          id: config.id,
+          label: labelArr.join(','),
+          createTime: config.createTime
+        }
+        hisArr.push(his)
+      }
+      return hisArr
     }
   },
   methods: {
@@ -387,6 +454,7 @@ export default {
     delCode(row) {
       let index = this.resultList.findIndex(item => item.code === row.code)
       this.resultList.splice(index, 1)
+      this.sortChange()
     },
     delRule(index) {
       this.checkRules.splice(index, 1)
@@ -563,6 +631,7 @@ export default {
     },
     saveConfig() {
       let config = {
+        id: Date.now(),
         rule: this.checkRules,
         hun: this.hundredList,
         ten: this.tenList,
@@ -571,10 +640,30 @@ export default {
         groupType: this.groupTypes,
         igMin: this.igMin,
         igMax: this.igMax,
-        savePath: this.savePath
+        createTime: formatDate(new Date())
       }
-      window.electron.setConfig('config', config)
+      this.configList.unshift(config)
+      window.electron.setConfig('configList', this.configList)
       this.$message.success('保存条件成功')
+    },
+    delConfig(index) {
+      this.configList.splice(index, 1)
+      window.electron.setConfig('configList', this.configList)
+      this.$message.success('删除条件成功')
+    },
+    applyConfig(index) {
+      let config = this.configList[index]
+      console.log(config)
+      this.checkRules = config.rule || []
+      this.hundredList = config.hun || []
+      this.tenList = config.ten || []
+      this.bitList = config.bit || []
+      this.groupList = config.group || []
+      this.groupTypes = config.groupType || []
+      this.igMin = config.igMin || 0
+      this.igMax = config.igMax || 0
+      this.hisShow = false
+      this.$message.success('应用条件成功')
     },
     copyResult() {
       if (this.resultList.length === 0) {
@@ -586,18 +675,20 @@ export default {
     }
   },
   mounted() {
-    window.electron.getConfig('config').then(config => {
-      console.log('读取到系统配置:', config)
-      if (!config) config = {}
-      this.checkRules = config.rule || []
-      this.hundredList = config.hun || []
-      this.tenList = config.ten || []
-      this.bitList = config.bit || []
-      this.groupList = config.group || []
-      this.groupTypes = config.groupType || []
-      this.igMin = config.igMin || 0
-      this.igMax = config.igMax || 0
-      this.savePath = config.savePath
+    window.electron.getConfig('configList').then(configList => {
+      console.log('读取到系统配置:', configList)
+      this.configList = configList
+      if (configList.length > 0) {
+        let config = configList[0]
+        this.checkRules = config.rule || []
+        this.hundredList = config.hun || []
+        this.tenList = config.ten || []
+        this.bitList = config.bit || []
+        this.groupList = config.group || []
+        this.groupTypes = config.groupType || []
+        this.igMin = config.igMin || 0
+        this.igMax = config.igMax || 0
+      }
     })
 
   }

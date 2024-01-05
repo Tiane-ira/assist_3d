@@ -230,7 +230,7 @@ function contains(arrList, arr) {
     return contains
 }
 
-// eslint-disable-next-line no-unused-vars
+// 递增顺序
 function getCalcGroups(ruleList, igIndexArr) {
     if (ruleList.length === 0) return []
     //将规则转换成规则项组
@@ -251,37 +251,49 @@ function getCalcGroups(ruleList, igIndexArr) {
         }
         ruleGroups.push(ruleGroup)
         ruleGroupLens.push(ruleGroup.length)
-        maxLen = Math.max(maxLen, ruleGroup.length) //最大优先下标+1值
+        maxLen = Math.max(maxLen, ruleGroup.length) // 优先下标+1值
     }
     //将规则组中每组排序计算得到规则项组
     let indexGroups = []
-    let index = 0 //优先下标
-    let len = ruleGroups.length //最大优先下标最大个数
-    let subArrs = subsets([...new Array(len).keys()]) //缓存当前长度下标选择的所有可能性
+    let index = 0 //当前优先下标
+    let len = ruleGroups.length // 优先下标最大个数,行数
+    let subArrs = subsets([...new Array(len).keys()]) // 所有行的组合下标可能性
     let startIndexArr = getStartIndexArr(len)
     while (index <= maxLen - 1) {
         resetIndex(startIndexArr, index, ruleGroupLens)
         //从最大优先下标个数开始依次递减
         for (let fixCount = len; fixCount > 0; fixCount--) {
-            let changeIndexArr = getChangeIndexArr(len - fixCount, subArrs)
+            let changeIndexArr = getChangeIndexArr(len - fixCount, subArrs) // 获取指定行数下表的可能性
             if (changeIndexArr.length > 0) {
                 for (let indexArr of changeIndexArr) {
-                    for (let changeIndex of indexArr) {
-                        resetIndex(startIndexArr, index, ruleGroupLens)
-                        let indexTmp = startIndexArr[changeIndex] //当前浮动条件值得下标
-                        //非当前浮动条件值的下标固定index + 1
-                        for (let otherChangeIndex of indexArr) {
-                            if (otherChangeIndex !== changeIndex) {
-                                let oIndex = startIndexArr[otherChangeIndex] + 1
-                                oIndex = oIndex > ruleGroupLens[otherChangeIndex] - 1 ? ruleGroupLens[otherChangeIndex] - 1 : oIndex
-                                startIndexArr[otherChangeIndex] = oIndex
-                            }
-                        }
-                        //当前变动下标从index+1依次递增到当前最大下标
-                        while (indexTmp < ruleGroupLens[changeIndex] - 1) {
-                            startIndexArr[changeIndex] = ++indexTmp
-                            if (!contains(indexGroups, startIndexArr)) {
-                                indexGroups.push(structuredClone(startIndexArr))
+                    for (let i = indexArr.length - 1; i >= 0; i--) {
+                        // 快速移动到len下标的行
+                        let changeIndex = indexArr[i]
+                        // 其他需要缓慢移动的行的下表
+                        let otherIndexArr = structuredClone(indexArr).splice(indexArr.indexOf(changeIndex), 1)
+                        let tmpOtherIndex = index + 1
+                        for (let j = otherIndexArr.length - 1; j >= 0; j--) {
+                            // 缓慢移动的行,changeIndex行移动到顶之后 + 1
+                            let otherRowIndex = otherIndexArr[j]
+                            for (let k = tmpOtherIndex; k < ruleGroupLens[otherRowIndex]; k++) {
+                                resetIndex(startIndexArr, index, ruleGroupLens, otherRowIndex, tmpOtherIndex)
+                                //非当前浮动条件值的下标固定index依次递增直到最大值
+                                for (let otherFixIndex of otherIndexArr) {
+                                    if (otherFixIndex !== changeIndex) {
+                                        let oIndex = startIndexArr[otherFixIndex] + 1
+                                        oIndex = oIndex > ruleGroupLens[otherFixIndex] - 1 ? ruleGroupLens[otherFixIndex] - 1 : oIndex
+                                        startIndexArr[otherFixIndex] = oIndex
+                                    }
+                                }
+                                let indexTmp = startIndexArr[changeIndex] //当前浮动条件值得下标
+                                //当前变动下标从index+1依次递增到当前最大下标
+                                while (indexTmp < ruleGroupLens[changeIndex] - 1) {
+                                    startIndexArr[changeIndex] = ++indexTmp
+                                    if (!contains(indexGroups, startIndexArr)) {
+                                        indexGroups.push(structuredClone(startIndexArr))
+                                    }
+                                }
+                                tmpOtherIndex++
                             }
                         }
                     }
@@ -306,6 +318,7 @@ function getCalcGroups(ruleList, igIndexArr) {
     return calcGroups
 }
 
+// 交叉顺序
 function getCalcGroups2(ruleList, igIndexArr) {
     if (ruleList.length === 0) return []
     //将规则转换成规则项组
@@ -392,12 +405,13 @@ function subsets(nums) {
     return res;
 }
 
-function resetIndex(startIndexArr, index, ruleGroupLens) {
+function resetIndex(startIndexArr, index, ruleGroupLens, otherRowIndex, tmpOtherIndex) {
     for (let i = 0; i < startIndexArr.length; i++) {
         let tmp = index
         tmp = tmp < ruleGroupLens[i] - 1 ? tmp : ruleGroupLens[i] - 1
         startIndexArr[i] = tmp
     }
+    startIndexArr[otherRowIndex] = tmpOtherIndex
 }
 
 function getChangeIndexArr(changeCount, subArrs) {
@@ -648,7 +662,7 @@ function get012Label(bitList) {
     return labelArr.sort().join('')
 }
 
-export const formatDate = (date,format='YYYY-MM-DD HH:mm:ss') => {
+export const formatDate = (date, format = 'YYYY-MM-DD HH:mm:ss') => {
     return moment(new Date(date).getTime()).format(format)
 }
 

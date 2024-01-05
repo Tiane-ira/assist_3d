@@ -256,51 +256,52 @@ function getCalcGroups(ruleList, igIndexArr) {
     //将规则组中每组排序计算得到规则项组
     let indexGroups = []
     let index = 0 //当前优先下标
-    let len = ruleGroups.length // 优先下标最大个数,行数
-    let subArrs = subsets([...new Array(len).keys()]) // 所有行的组合下标可能性
-    let startIndexArr = getStartIndexArr(len)
+    let maxCount = ruleGroups.length // 优先下标最大个数,行数
+    let rowArrList = subsets([...new Array(maxCount).keys()]) // 所有行的组合下标可能性
+    let indexGroup = getStartIndexArr(maxCount)
     while (index <= maxLen - 1) {
-        resetIndex(startIndexArr, index, ruleGroupLens)
-        //从最大优先下标个数开始依次递减
-        for (let fixCount = len; fixCount > 0; fixCount--) {
-            let changeIndexArr = getChangeIndexArr(len - fixCount, subArrs) // 获取指定行数下表的可能性
-            if (changeIndexArr.length > 0) {
-                for (let indexArr of changeIndexArr) {
-                    for (let i = indexArr.length - 1; i >= 0; i--) {
+        resetIndex(indexGroup, index, ruleGroupLens)
+        //最大优先下标个数依次递减
+        for (let fixCount = maxCount; fixCount > 0; fixCount--) {
+            let moveRowArrList = getMoveRowArrList(maxCount - fixCount, rowArrList) // 获取指定行数下表的可能性
+            if (moveRowArrList.length > 0) {
+                for (let moveRowArr of moveRowArrList) {
+                    for (let i = moveRowArr.length - 1; i >= 0; i--) {
                         // 快速移动到len下标的行
-                        let changeIndex = indexArr[i]
+                        let quickRow = moveRowArr[i]
                         // 其他需要缓慢移动的行的下表
-                        let otherIndexArr = structuredClone(indexArr).splice(indexArr.indexOf(changeIndex), 1)
-                        let tmpOtherIndex = index + 1
-                        for (let j = otherIndexArr.length - 1; j >= 0; j--) {
-                            // 缓慢移动的行,changeIndex行移动到顶之后 + 1
-                            let otherRowIndex = otherIndexArr[j]
-                            for (let k = tmpOtherIndex; k < ruleGroupLens[otherRowIndex]; k++) {
-                                resetIndex(startIndexArr, index, ruleGroupLens, otherRowIndex, tmpOtherIndex)
+                        let slowRowArr = structuredClone(moveRowArr).splice(moveRowArr.indexOf(quickRow), 1)
+                        let fixIndex = index + 1 // 排列开始的下标
+                        let slowIndex = index + 1 // 排列开始的下标
+                        for (let j = slowRowArr.length - 1; j >= 0; j--) {
+                            // 缓慢移动的行,quickRow行移动到顶之后 + 1
+                            let slowRow = slowRowArr[j]
+                            for (let k = fixIndex; k < ruleGroupLens[slowRow]; k++) {
+                                resetIndex(indexGroup, index, ruleGroupLens, slowRow, fixIndex)
                                 //非当前浮动条件值的下标固定index依次递增直到最大值
-                                for (let otherFixIndex of otherIndexArr) {
-                                    if (otherFixIndex !== changeIndex) {
-                                        let oIndex = startIndexArr[otherFixIndex] + 1
+                                for (let otherFixIndex of slowRowArr) {
+                                    if (otherFixIndex !== quickRow) {
+                                        let oIndex = indexGroup[otherFixIndex] + 1
                                         oIndex = oIndex > ruleGroupLens[otherFixIndex] - 1 ? ruleGroupLens[otherFixIndex] - 1 : oIndex
-                                        startIndexArr[otherFixIndex] = oIndex
+                                        indexGroup[otherFixIndex] = oIndex
                                     }
                                 }
-                                let indexTmp = startIndexArr[changeIndex] //当前浮动条件值得下标
+                                let indexTmp = indexGroup[quickRow] //当前浮动条件值得下标
                                 //当前变动下标从index+1依次递增到当前最大下标
-                                while (indexTmp < ruleGroupLens[changeIndex] - 1) {
-                                    startIndexArr[changeIndex] = ++indexTmp
-                                    if (!contains(indexGroups, startIndexArr)) {
-                                        indexGroups.push(structuredClone(startIndexArr))
+                                while (indexTmp < ruleGroupLens[quickRow] - 1) {
+                                    indexGroup[quickRow] = ++indexTmp
+                                    if (!contains(indexGroups, indexGroup)) {
+                                        indexGroups.push(structuredClone(indexGroup))
                                     }
                                 }
-                                tmpOtherIndex++
+                                fixIndex++
                             }
                         }
                     }
                 }
             } else {
-                if (!contains(indexGroups, startIndexArr)) {
-                    indexGroups.push(structuredClone(startIndexArr))
+                if (!contains(indexGroups, indexGroup)) {
+                    indexGroups.push(structuredClone(indexGroup))
                 }
             }
         }
@@ -310,7 +311,7 @@ function getCalcGroups(ruleList, igIndexArr) {
     let calcGroups = []
     for (let indexGroup of indexGroups) {
         let calcGroup = []
-        for (let i = 0; i < len; i++) {
+        for (let i = 0; i < maxCount; i++) {
             calcGroup.push(ruleGroups[i][indexGroup[i]])
         }
         calcGroups.push(calcGroup)
@@ -405,16 +406,16 @@ function subsets(nums) {
     return res;
 }
 
-function resetIndex(startIndexArr, index, ruleGroupLens, otherRowIndex, tmpOtherIndex) {
-    for (let i = 0; i < startIndexArr.length; i++) {
+function resetIndex(indexGroup, index, ruleGroupLens, slowRow, fixIndex) {
+    for (let i = 0; i < indexGroup.length; i++) {
         let tmp = index
         tmp = tmp < ruleGroupLens[i] - 1 ? tmp : ruleGroupLens[i] - 1
-        startIndexArr[i] = tmp
+        indexGroup[i] = tmp
     }
-    startIndexArr[otherRowIndex] = tmpOtherIndex
+    indexGroup[slowRow] = fixIndex
 }
 
-function getChangeIndexArr(changeCount, subArrs) {
+function getMoveRowArrList(changeCount, subArrs) {
     if (changeCount === 0) return []
     let changeIndexArr = []
     for (let subArr of subArrs) {

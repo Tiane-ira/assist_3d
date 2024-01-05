@@ -1,7 +1,7 @@
 //候选集codeList,根据规则列表中所有的索引组合出过滤项，通过过滤就加入结果集,直到候选集都通过或所有过滤项过滤完
 import moment from "moment";
 
-export const filterCodes = (codeList, ruleList, igCounts) => {
+export const filterCodes = (codeList, ruleList, igCounts, orderType) => {
     if (ruleList.length === 0) return codeList
     let restCodes = structuredClone(codeList) //剩余未过滤成功的code列表,如果为空即停止过滤
     let resultCodes = [] //最终得到的code列表
@@ -24,7 +24,12 @@ export const filterCodes = (codeList, ruleList, igCounts) => {
         let igIndexArrList = getIgIndexArrList(igCount, subIgIndexArrList) //获取当前容错数量的所有容错条件的组合可能
         for (let igIndexArr of igIndexArrList) {
             // console.log('容错下标组', igIndexArrList)
-            let calcGroups = getCalcGroups(ruleList, igIndexArr)
+            let calcGroups
+            if (orderType) {
+                calcGroups = getCalcGroups2(ruleList, igIndexArr)
+            } else {
+                calcGroups = getCalcGroups(ruleList, igIndexArr)
+            }
             // console.log('当前容错计算项', igIndexArr, calcGroups)
             for (let calcGroup of calcGroups) {
                 let filterCodes = doFilter(codeList, calcGroup) //单次过滤得到的code列表
@@ -274,26 +279,28 @@ function getCalcGroups(ruleList, igIndexArr) {
                         let slowRowArr = structuredClone(moveRowArr)
                         slowRowArr.splice(moveRowArr.indexOf(quickRow), 1)
                         if (slowRowArr.length > 0) {
-                            let fixIndex = index + 1 // 固定行的下标
-                            // let slowIndex = index + 1 // 缓慢移动行的当前下标
-                            for (let j = slowRowArr.length - 1; j >= 0; j--) {
-                                // 缓慢移动的行,quickRow行移动到顶之后 + 1
-                                let slowRow = slowRowArr[j]
-                                // 缓慢移动行依次递增直到当前行的最大值
-                                for (let slowIndex = fixIndex; slowIndex < ruleGroupLens[slowRow]; slowIndex++) {
-                                    resetIndexWithSlow(indexGroup, index, ruleGroupLens, slowRow, slowIndex)
-                                    //不是缓慢移动的其他行固定下标
-                                    for (let fixRow of slowRowArr) {
-                                        if (fixRow !== slowRow) {
-                                            indexGroup[fixRow] = fixIndex > ruleGroupLens[fixRow] - 1 ? ruleGroupLens[fixRow] - 1 : fixIndex
+                            let fixStartIndex = index + 1 // 固定行的下标
+                            for (let fixIndex = fixStartIndex; fixIndex < maxLen - 1; fixIndex++) {
+                                // let slowIndex = index + 1 // 缓慢移动行的当前下标
+                                for (let j = slowRowArr.length - 1; j >= 0; j--) {
+                                    // 缓慢移动的行,quickRow行移动到顶之后 + 1
+                                    let slowRow = slowRowArr[j]
+                                    // 缓慢移动行依次递增直到当前行的最大值
+                                    for (let slowIndex = fixIndex; slowIndex < ruleGroupLens[slowRow]; slowIndex++) {
+                                        resetIndexWithSlow(indexGroup, index, ruleGroupLens, slowRow, slowIndex)
+                                        //不是缓慢移动的其他行固定下标
+                                        for (let fixRow of slowRowArr) {
+                                            if (fixRow !== slowRow) {
+                                                indexGroup[fixRow] = fixIndex > ruleGroupLens[fixRow] - 1 ? ruleGroupLens[fixRow] - 1 : fixIndex
+                                            }
                                         }
-                                    }
-                                    let tmpQuickIndex = index //当前浮动条件值得下标
-                                    //当前变动下标从index+1依次递增到当前最大下标
-                                    while (tmpQuickIndex < ruleGroupLens[quickRow] - 1) {
-                                        indexGroup[quickRow] = ++tmpQuickIndex
-                                        if (!contains(indexGroups, indexGroup)) {
-                                            indexGroups.push(structuredClone(indexGroup))
+                                        let tmpQuickIndex = index //当前浮动条件值得下标
+                                        //当前变动下标从index+1依次递增到当前最大下标
+                                        while (tmpQuickIndex < ruleGroupLens[quickRow] - 1) {
+                                            indexGroup[quickRow] = ++tmpQuickIndex
+                                            if (!contains(indexGroups, indexGroup)) {
+                                                indexGroups.push(structuredClone(indexGroup))
+                                            }
                                         }
                                     }
                                 }

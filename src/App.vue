@@ -17,7 +17,7 @@
               <el-checkbox-group v-model="groupList" size="small" class="num">
                 <el-checkbox-button v-for="num in numList" :label="num" :key="num">{{ num }}</el-checkbox-button>
               </el-checkbox-group>
-              <el-checkbox-group style="margin-top: 10px" v-model="groupTypes" class="group-type">
+              <el-checkbox-group v-model="groupTypes" class="group-type">
                 <el-checkbox label="豹子"></el-checkbox>
                 <el-checkbox label="组三"></el-checkbox>
                 <el-checkbox label="组六"></el-checkbox>
@@ -131,6 +131,9 @@
               </el-option>
             </el-select>
           </div>
+        </div>
+        <div class="ignore-check">
+          <el-checkbox v-model="orderType">交叉排列</el-checkbox>
         </div>
       </el-col>
       <el-col :span="12" class="top-right">
@@ -394,7 +397,8 @@ export default {
       hisShow: false,
       configList: [],
       saveRuleShow: false,
-      ruleName: ''
+      ruleName: '',
+      orderType: false
     }
   },
   computed: {
@@ -466,7 +470,7 @@ export default {
         codeList = getNumDirect(this.bitList, this.tenList, this.hundredList)
       }
       let igCounts = getIgCounts(this.igMin, this.igMax) // 默认0-0无容错
-      let filteredCodeList = filterCodes(codeList, this.checkRules, igCounts)
+      let filteredCodeList = filterCodes(codeList, this.checkRules, igCounts, this.orderType)
       this.resultList = getNumObjByCodes(filteredCodeList)
       this.codesResult = filteredCodeList.join(' ')
       this.loading = false
@@ -766,6 +770,7 @@ export default {
 
 .group-type {
   padding: 0 50px;
+  margin-top: 10px
 }
 
 .top-right {

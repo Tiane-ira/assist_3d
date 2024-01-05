@@ -24,7 +24,7 @@ export const filterCodes = (codeList, ruleList, igCounts) => {
         let igIndexArrList = getIgIndexArrList(igCount, subIgIndexArrList) //获取当前容错数量的所有容错条件的组合可能
         for (let igIndexArr of igIndexArrList) {
             // console.log('容错下标组', igIndexArrList)
-            let calcGroups = getCalcGroups2(ruleList, igIndexArr)
+            let calcGroups = getCalcGroups(ruleList, igIndexArr)
             // console.log('当前容错计算项', igIndexArr, calcGroups)
             for (let calcGroup of calcGroups) {
                 let filterCodes = doFilter(codeList, calcGroup) //单次过滤得到的code列表
@@ -267,36 +267,48 @@ function getCalcGroups(ruleList, igIndexArr) {
             if (moveRowArrList.length > 0) {
                 for (let moveRowArr of moveRowArrList) {
                     for (let i = moveRowArr.length - 1; i >= 0; i--) {
+                        resetIndex(indexGroup, index, ruleGroupLens)
                         // 快速移动到len下标的行
                         let quickRow = moveRowArr[i]
-                        // 其他需要缓慢移动的行的下表
-                        let slowRowArr = structuredClone(moveRowArr).splice(moveRowArr.indexOf(quickRow), 1)
-                        let fixIndex = index + 1 // 排列开始的下标
-                        let slowIndex = index + 1 // 排列开始的下标
-                        for (let j = slowRowArr.length - 1; j >= 0; j--) {
-                            // 缓慢移动的行,quickRow行移动到顶之后 + 1
-                            let slowRow = slowRowArr[j]
-                            for (let k = fixIndex; k < ruleGroupLens[slowRow]; k++) {
-                                resetIndex(indexGroup, index, ruleGroupLens, slowRow, fixIndex)
-                                //非当前浮动条件值的下标固定index依次递增直到最大值
-                                for (let otherFixIndex of slowRowArr) {
-                                    if (otherFixIndex !== quickRow) {
-                                        let oIndex = indexGroup[otherFixIndex] + 1
-                                        oIndex = oIndex > ruleGroupLens[otherFixIndex] - 1 ? ruleGroupLens[otherFixIndex] - 1 : oIndex
-                                        indexGroup[otherFixIndex] = oIndex
+                        // 缓慢移动的行的列表
+                        let slowRowArr = structuredClone(moveRowArr)
+                        slowRowArr.splice(moveRowArr.indexOf(quickRow), 1)
+                        if (slowRowArr.length > 0) {
+                            let fixIndex = index + 1 // 固定行的下标
+                            // let slowIndex = index + 1 // 缓慢移动行的当前下标
+                            for (let j = slowRowArr.length - 1; j >= 0; j--) {
+                                // 缓慢移动的行,quickRow行移动到顶之后 + 1
+                                let slowRow = slowRowArr[j]
+                                // 缓慢移动行依次递增直到当前行的最大值
+                                for (let slowIndex = fixIndex; slowIndex < ruleGroupLens[slowRow]; slowIndex++) {
+                                    resetIndexWithSlow(indexGroup, index, ruleGroupLens, slowRow, slowIndex)
+                                    //不是缓慢移动的其他行固定下标
+                                    for (let fixRow of slowRowArr) {
+                                        if (fixRow !== slowRow) {
+                                            indexGroup[fixRow] = fixIndex > ruleGroupLens[fixRow] - 1 ? ruleGroupLens[fixRow] - 1 : fixIndex
+                                        }
+                                    }
+                                    let tmpQuickIndex = index //当前浮动条件值得下标
+                                    //当前变动下标从index+1依次递增到当前最大下标
+                                    while (tmpQuickIndex < ruleGroupLens[quickRow] - 1) {
+                                        indexGroup[quickRow] = ++tmpQuickIndex
+                                        if (!contains(indexGroups, indexGroup)) {
+                                            indexGroups.push(structuredClone(indexGroup))
+                                        }
                                     }
                                 }
-                                let indexTmp = indexGroup[quickRow] //当前浮动条件值得下标
-                                //当前变动下标从index+1依次递增到当前最大下标
-                                while (indexTmp < ruleGroupLens[quickRow] - 1) {
-                                    indexGroup[quickRow] = ++indexTmp
-                                    if (!contains(indexGroups, indexGroup)) {
-                                        indexGroups.push(structuredClone(indexGroup))
-                                    }
+                            }
+                        } else {
+                            let tmpQuickIndex = index //当前浮动条件值得下标
+                            //当前变动下标从index+1依次递增到当前最大下标
+                            while (tmpQuickIndex < ruleGroupLens[quickRow] - 1) {
+                                indexGroup[quickRow] = ++tmpQuickIndex
+                                if (!contains(indexGroups, indexGroup)) {
+                                    indexGroups.push(structuredClone(indexGroup))
                                 }
-                                fixIndex++
                             }
                         }
+
                     }
                 }
             } else {
@@ -317,6 +329,23 @@ function getCalcGroups(ruleList, igIndexArr) {
         calcGroups.push(calcGroup)
     }
     return calcGroups
+}
+
+function resetIndexWithSlow(indexGroup, index, ruleGroupLens, slowRow, slowIndex) {
+    for (let i = 0; i < indexGroup.length; i++) {
+        let tmp = index
+        tmp = tmp < ruleGroupLens[i] - 1 ? tmp : ruleGroupLens[i] - 1
+        indexGroup[i] = tmp
+    }
+    indexGroup[slowRow] = slowIndex
+}
+
+function resetIndex(indexGroup, index, ruleGroupLens) {
+    for (let i = 0; i < indexGroup.length; i++) {
+        let tmp = index
+        tmp = tmp < ruleGroupLens[i] - 1 ? tmp : ruleGroupLens[i] - 1
+        indexGroup[i] = tmp
+    }
 }
 
 // 交叉顺序
@@ -406,15 +435,6 @@ function subsets(nums) {
     return res;
 }
 
-function resetIndex(indexGroup, index, ruleGroupLens, slowRow, fixIndex) {
-    for (let i = 0; i < indexGroup.length; i++) {
-        let tmp = index
-        tmp = tmp < ruleGroupLens[i] - 1 ? tmp : ruleGroupLens[i] - 1
-        indexGroup[i] = tmp
-    }
-    indexGroup[slowRow] = fixIndex
-}
-
 function getMoveRowArrList(changeCount, subArrs) {
     if (changeCount === 0) return []
     let changeIndexArr = []
@@ -424,7 +444,13 @@ function getMoveRowArrList(changeCount, subArrs) {
             changeIndexArr.push(subArr)
         }
     }
-    return changeIndexArr
+    return changeIndexArr.sort((arr1, arr2) => {
+        // 和值较大的排前面
+        let sumDiff = arr2.reduce((pre, cur) => pre + cur, 0) - arr1.reduce((pre, cur) => pre + cur, 0)
+        if (sumDiff !== 0) return sumDiff
+        // 最大值较大的排前面
+        return Math.max(...arr2) - Math.max(...arr1)
+    })
 }
 
 function getStartIndexArr(len) {

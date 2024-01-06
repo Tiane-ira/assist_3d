@@ -12,10 +12,15 @@ const copy2Clipboard = (data) => {
     ipcRenderer.invoke('copy2Clipboard', data)
 }
 
+const filterCodes = (codeList, ruleList, igCounts, orderType) => {
+    return ipcRenderer.invoke('filterCodes', codeList, ruleList, igCounts, orderType)
+}
+
 contextBridge.exposeInMainWorld('electron', {
     platform: process.platform,
     setConfig,
     getConfig,
-    copy2Clipboard
+    copy2Clipboard,
+    filterCodes
 })
 

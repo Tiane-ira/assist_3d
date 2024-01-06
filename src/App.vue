@@ -470,11 +470,12 @@ export default {
         codeList = getNumDirect(this.bitList, this.tenList, this.hundredList)
       }
       let igCounts = getIgCounts(this.igMin, this.igMax) // 默认0-0无容错
-      let filteredCodeList = filterCodes(codeList, this.checkRules, igCounts, this.orderType)
-      this.resultList = getNumObjByCodes(filteredCodeList)
-      this.codesResult = filteredCodeList.join(' ')
-      this.loading = false
-      this.$message.success("结果计算成功");
+      window.electron.filterCodes(codeList, this.checkRules, igCounts, this.orderType).then(filteredCodeList => {
+        this.resultList = getNumObjByCodes(filteredCodeList)
+        this.codesResult = filteredCodeList.join(' ')
+        this.loading = false
+        this.$message.success("结果计算成功");
+      }).catch(e => this.$message.success("结果计算异常:" + e.toString()))
     },
     sortChange() {
       let codeList = []

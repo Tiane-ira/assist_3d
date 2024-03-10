@@ -87,6 +87,7 @@
                   <span>【{{ index + 1 }}】{{ item.title }}</span>
                 </div>
                 <div>
+                  <el-checkbox v-model="item.isOrder" style="margin-right: 10px">排序</el-checkbox>
                   <el-checkbox v-model="item.ignore" v-if="item.label!=='dmz'" @change="changeIg"
                                style="margin-right: 10px">容错
                   </el-checkbox>
@@ -337,7 +338,6 @@
 
 <script>
 import {
-  filterCodes,
   formatDate,
   getIgCounts,
   getNumDirect,
@@ -353,8 +353,8 @@ const allDzx = ['小小小', '小小中', '小中中', '中中中', '小中大',
 const all012l = ['000', '001', '002', '011', '022', '012', '111', '112', '122', '222']
 const allMCSM = [
   '000', '011', '022', '033', '044', '055', '066', '077', '088', '099',
-  '112', '123', '134', '145', '156', '178', '189', '224', '235', '246',
-  '257', '268', '279', '336', '347', '358', '369', '448', '459'
+  '112', '123', '134', '145', '156', '167', '178', '189', '224', '235',
+  '246', '257', '268', '279', '336', '347', '358', '369', '448', '459'
 ]
 export default {
   name: 'App',
@@ -582,6 +582,14 @@ export default {
         }
       }
     },
+    changeIsOrder(checked) {
+      if (!checked) {
+        if (this.igMin > this.igNum || this.igMax > this.igNum) {
+          this.igMin = 0
+          this.igMax = 0
+        }
+      }
+    },
     changeIgMin(newVal) {
       this.igMax = newVal
     },
@@ -614,6 +622,7 @@ export default {
             label: this.normalRule.label,
             type: 'normal',
             ignore: false,
+            isOrder: false,
             checks: this.normalRule.checks
           }
           this.checkRules.push(rule)
@@ -654,6 +663,7 @@ export default {
           label: this.dmzRule.label,
           type: 'dmz',
           ignore: false,
+          isOrder: false,
           checks: this.dmzRule.checks
         }
         this.checkRules.push(rule)

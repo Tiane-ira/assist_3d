@@ -1,6 +1,6 @@
 'use strict'
 
-import {app, protocol, BrowserWindow, ipcMain,clipboard} from 'electron'
+import {app, protocol, BrowserWindow, ipcMain, clipboard} from 'electron'
 import {createProtocol} from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, {VUEJS_DEVTOOLS} from 'electron-devtools-installer'
 
@@ -103,6 +103,7 @@ ipcMain.handle('copy2Clipboard', (e, data) => {
 ipcMain.handle('filterCodes', (e, codeList, ruleList, igCounts, orderType) => {
     return codesFilter(codeList, ruleList, igCounts, orderType)
 })
+
 //获取缓慢移动行所有下标组合
 function getSlowRowIndexArrList(index, slowRowArr, ruleGroupLens) {
     let rowIndexArrList = []
@@ -158,12 +159,12 @@ function getCalcGroups2(ruleList, igIndexArr) {
         let rule = ruleList[i]
         let withdraw = igIndexArr.indexOf(i) > -1 //当前规则组是否进行容错
         let ruleGroup = []
-        // 胆码组和容错得条件当成一整个计算项进行计算
-        if ((rule.label === 'dmz') || (rule.ignore && withdraw)) {
+        // 胆码组、容错条件、不参与排序出号的条件，当成一整个计算项进行计算
+        if ((rule.label === 'dmz') || !rule.isOrder || (rule.ignore && withdraw)) {
             ruleGroup.push(rule)
         } else {
             for (let ruleValue of rule.checks) {
-                ruleGroup.push({label: rule.label, ruleValue})
+                ruleGroup.push({label: rule.label, ruleValue, isOrder: true})
             }
         }
         ruleGroups.push(ruleGroup)
@@ -283,6 +284,7 @@ function getStartIndexArr(len) {
     }
     return startIndexArr
 }
+
 // 递增顺序
 function getCalcGroups(ruleList, igIndexArr) {
     if (ruleList.length === 0) return []
@@ -294,12 +296,12 @@ function getCalcGroups(ruleList, igIndexArr) {
         let rule = ruleList[i]
         let withdraw = igIndexArr.indexOf(i) > -1 //当前规则组是否进行容错
         let ruleGroup = []
-        // 胆码组和容错得条件当成一整个计算项进行计算
-        if ((rule.label === 'dmz') || (rule.ignore && withdraw)) {
+        // 胆码组、容错条件、不参与排序出号的条件，当成一整个计算项进行计算
+        if ((rule.label === 'dmz') || !rule.isOrder || (rule.ignore && withdraw)) {
             ruleGroup.push(rule)
         } else {
             for (let ruleValue of rule.checks) {
-                ruleGroup.push({label: rule.label, ruleValue})
+                ruleGroup.push({label: rule.label, ruleValue, isOrder: true})
             }
         }
         ruleGroups.push(ruleGroup)
@@ -372,6 +374,7 @@ function getCalcGroups(ruleList, igIndexArr) {
     }
     return calcGroups
 }
+
 function contains(arrList, arr) {
     if (arrList.length === 0) return false
     let len = arrList[0].length;
@@ -401,11 +404,136 @@ function doFilter(codeList, calcGroup) {
 }
 
 const allJiOu = ['3奇', '2奇1偶', '1奇2偶', '3偶']
+
+function checkJo(code, checks) {
+    let hun = parseInt(code[0])
+    let ten = parseInt(code[1])
+    let bit = parseInt(code[2])
+    let jCount = 0
+    for (let num of [hun, ten, bit]) {
+        if (num % 2 === 1) jCount++
+    }
+    let ruleJiOuCounts = []
+    for (let item of checks) {
+        let jiOuCount = allJiOu.findIndex(val => item === val)
+        if (jiOuCount > -1) {
+            ruleJiOuCounts.push(jiOuCount)
+        }
+    }
+    return ruleJiOuCounts.indexOf(jCount) === -1
+}
+
+function checkHz(code, checks) {
+    let hun = parseInt(code[0])
+    let ten = parseInt(code[1])
+    let bit = parseInt(code[2])
+    let sum = hun + ten + bit
+    return checks.indexOf(sum.toString()) === -1
+}
+
+function checkKd(code, checks) {
+    let hun = parseInt(code[0])
+    let ten = parseInt(code[1])
+    let bit = parseInt(code[2])
+    let diff = Math.max(hun, ten, bit) - Math.min(hun, ten, bit)
+    return checks.indexOf(diff.toString()) === -1
+}
+
+function checkLmh(code, checks) {
+    let hun = parseInt(code[0])
+    let ten = parseInt(code[1])
+    let bit = parseInt(code[2])
+    let highSum = hun + ten
+    let midSum = hun + bit
+    let lowSum = ten + bit
+    for (let sum of [highSum, midSum, lowSum]) {
+        if (checks.indexOf(sum.toString()) > -1) return false
+    }
+    return true
+}
+
+function checkLmc(code, checks) {
+    let hun = parseInt(code[0])
+    let ten = parseInt(code[1])
+    let bit = parseInt(code[2])
+    let highDiff = Math.abs(hun - ten)
+    let midDiff = Math.abs(hun - bit)
+    let lowDiff = Math.abs(ten - bit)
+    for (let diff of [highDiff, midDiff, lowDiff]) {
+        if (checks.indexOf(diff.toString()) > -1) return false
+    }
+    return true
+}
+
+function checkZdz(code, checks) {
+    let hun = parseInt(code[0])
+    let ten = parseInt(code[1])
+    let bit = parseInt(code[2])
+    let max = Math.max(hun, ten, bit)
+    return checks.indexOf(max.toString()) === -1
+}
+
+function checkZjz(code, checks) {
+    let hun = parseInt(code[0])
+    let ten = parseInt(code[1])
+    let bit = parseInt(code[2])
+    let arr = [hun, ten, bit].sort()
+    return checks.indexOf(arr[1].toString()) === -1
+}
+
+function checkZxz(code, checks) {
+    let hun = parseInt(code[0])
+    let ten = parseInt(code[1])
+    let bit = parseInt(code[2])
+    let min = Math.min(hun, ten, bit)
+    return checks.indexOf(min.toString()) === -1
+}
+
+function checkDzx(code, checks) {
+    let hun = parseInt(code[0])
+    let ten = parseInt(code[1])
+    let bit = parseInt(code[2])
+    let tLabel = getDzxLabel([hun, ten, bit])
+    return checks.indexOf(tLabel) === -1
+}
+
+function check023L(code, checks) {
+    let hun = parseInt(code[0])
+    let ten = parseInt(code[1])
+    let bit = parseInt(code[2])
+    let tLabel = get012Label([hun, ten, bit])
+    return checks.indexOf(tLabel) === -1
+}
+
+function checkHz2(code, checks) {
+    let hun = parseInt(code[0])
+    let ten = parseInt(code[1])
+    let bit = parseInt(code[2])
+    let hz = (hun + ten + bit) % 10
+    return checks.indexOf(hz.toString()) === -1
+}
+
+function checkMcsm(code, checks) {
+    let hun = parseInt(code[0])
+    let ten = parseInt(code[1])
+    let bit = parseInt(code[2])
+    let highDiff = Math.abs(hun - ten)
+    let midDiff = Math.abs(hun - bit)
+    let lowDiff = Math.abs(ten - bit)
+    let diffArr = [highDiff, midDiff, lowDiff].sort()
+    let diffCode = `${diffArr[0]}${diffArr[1]}${diffArr[2]}`
+    return checks.indexOf(diffCode) === -1
+}
+
 function checkCode(code, calcItem) {
     let hun = parseInt(code[0])
     let ten = parseInt(code[1])
     let bit = parseInt(code[2])
     let label = calcItem.label
+
+    // console.log("计算项", code, calcItem)
+
+
     if (label === 'dmz') {
         let dmzRules = calcItem.checks.filter(item => item.values.length > 0)
         // 胆码组无容错
@@ -422,67 +550,59 @@ function checkCode(code, calcItem) {
         return count === 0
     } else if (calcItem.ignore) {
         let checks = calcItem.checks
-        // 容错计算
+        // 容错计算,容错忽略排序,规则作为整体计算反向
         if (label === 'jo') {
-            let jCount = 0
-            for (let num of [hun, ten, bit]) {
-                if (num % 2 === 1) jCount++
-            }
-            let ruleJiOuCounts = []
-            for (let item of checks) {
-                let jiOuCount = allJiOu.findIndex(val => item === val)
-                if (jiOuCount > -1) {
-                    ruleJiOuCounts.push(jiOuCount)
-                }
-            }
-            return ruleJiOuCounts.indexOf(jCount) === -1
+            return checkJo(code, checks);
         } else if (label === 'hz') {
-            let sum = hun + ten + bit
-            return checks.indexOf(sum.toString()) === -1
+            return checkHz(code, checks);
         } else if (label === 'kd') {
-            let diff = Math.max(hun, ten, bit) - Math.min(hun, ten, bit)
-            return checks.indexOf(diff.toString()) === -1
+            return checkKd(code, checks);
         } else if (label === 'lmh') {
-            let highSum = hun + ten
-            let midSum = hun + bit
-            let lowSum = ten + bit
-            for (let sum of [highSum, midSum, lowSum]) {
-                if (checks.indexOf(sum.toString()) > -1) return false
-            }
-            return true
+            return checkLmh(code, checks);
         } else if (label === 'lmc') {
-            let highDiff = Math.abs(hun - ten)
-            let midDiff = Math.abs(hun - bit)
-            let lowDiff = Math.abs(ten - bit)
-            for (let diff of [highDiff, midDiff, lowDiff]) {
-                if (checks.indexOf(diff.toString()) > -1) return false
-            }
-            return true
+            return checkLmc(code, checks);
         } else if (label === 'zdz') {
-            let max = Math.max(hun, ten, bit)
-            return checks.indexOf(max.toString()) === -1
+            return checkZdz(code, checks);
         } else if (label === 'zjz') {
-            let arr = [hun, ten, bit].sort()
-            return checks.indexOf(arr[1].toString()) === -1
+            return checkZjz(code, checks);
         } else if (label === 'zxz') {
-            let min = Math.max(hun, ten, bit)
-            return checks.indexOf(min.toString()) === -1
+            return checkZxz(code, checks);
         } else if (label === 'dzx') {
-            let tLabel = getDzxLabel([hun, ten, bit])
-            return checks.indexOf(tLabel) === -1
+            return checkDzx(code, checks);
         } else if (label === '012l') {
-            let tLabel = get012Label([hun, ten, bit])
-            return checks.indexOf(tLabel) === -1
+            return check023L(code, checks);
         } else if (label === 'hz2') {
-            let hz = (hun + ten + bit) % 10
-            return checks.indexOf(hz.toString()) === -1
+            return checkHz2(code, checks);
         } else if (label === 'mcsm') {
-            let highDiff = Math.abs(hun - ten)
-            let midDiff = Math.abs(hun - bit)
-            let lowDiff = Math.abs(ten - bit)
-            let diffArr = [highDiff, midDiff, lowDiff].sort()
-            let diffCode = `${diffArr[0]}${diffArr[1]}${diffArr[2]}`
-            return checks.indexOf(diffCode) === -1
+            return checkMcsm(code, checks);
+        }
+    } else if (!calcItem.isOrder) {
+        let checks = calcItem.checks
+        // 非排序计算，规则视为整体计算
+        if (label === 'jo') {
+            return !checkJo(code, checks);
+        } else if (label === 'hz') {
+            return !checkHz(code, checks);
+        } else if (label === 'kd') {
+            return !checkKd(code, checks);
+        } else if (label === 'lmh') {
+            return !checkLmh(code, checks);
+        } else if (label === 'lmc') {
+            return !checkLmc(code, checks);
+        } else if (label === 'zdz') {
+            return !checkZdz(code, checks);
+        } else if (label === 'zjz') {
+            return !checkZjz(code, checks);
+        } else if (label === 'zxz') {
+            return !checkZxz(code, checks);
+        } else if (label === 'dzx') {
+            return !checkDzx(code, checks);
+        } else if (label === '012l') {
+            return !check023L(code, checks);
+        } else if (label === 'hz2') {
+            return !checkHz2(code, checks);
+        } else if (label === 'mcsm') {
+            return !checkMcsm(code, checks);
         }
     } else {
         // 正常条件排列项计算
@@ -549,7 +669,7 @@ function getIgIndexArrList(igCount, subIgIndexArrList) {
     return igIndexArrList
 }
 
-function codesFilter(codeList, ruleList, igCounts, orderType){
+function codesFilter(codeList, ruleList, igCounts, orderType) {
     if (ruleList.length === 0) return codeList
     let restCodes = structuredClone(codeList) //剩余未过滤成功的code列表,如果为空即停止过滤
     let resultCodes = [] //最终得到的code列表

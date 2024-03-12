@@ -475,7 +475,10 @@ export default {
         this.codesResult = filteredCodeList.join(' ')
         this.loading = false
         this.$message.success("结果计算成功");
-      }).catch(e => this.$message.success("结果计算异常:" + e.toString()))
+      }).catch(e => {
+        this.loading = false
+        this.$message.error("结果计算失败:" + e.toString());
+      })
     },
     sortChange() {
       let codeList = []
@@ -575,14 +578,6 @@ export default {
       }
     },
     changeIg(checked) {
-      if (!checked) {
-        if (this.igMin > this.igNum || this.igMax > this.igNum) {
-          this.igMin = 0
-          this.igMax = 0
-        }
-      }
-    },
-    changeIsOrder(checked) {
       if (!checked) {
         if (this.igMin > this.igNum || this.igMax > this.igNum) {
           this.igMin = 0

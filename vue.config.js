@@ -27,6 +27,15 @@ module.exports = defineConfig({
                         }
                     ] // 打包的目标类型,支持很多类型，具体看文档
                 },
+                mac: {
+                    icon: "build/icons/icon.icns",
+                    target: [
+                        {
+                            target: "dmg",
+                            arch: "universal"
+                        }
+                    ]
+                },
                 nsis: {
                     oneClick: false, // 是否一键安装
                     perMachine: true, //true全用户安装【目录为：C:\Program Files (x86)】，false安装到当前用户
@@ -39,7 +48,8 @@ module.exports = defineConfig({
                     createStartMenuShortcut: true,// 是否创建开始菜单图标
                     shortcutName: "assist_3d", // 快捷方式名称
                     runAfterFinish: true,//是否安装完成后运行
-                }
+                },
+                dmg: {}
             },
         }
     }

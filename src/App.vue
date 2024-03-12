@@ -78,6 +78,7 @@
             <el-button class="rule" size="small" type="success" @click="showRule('dmz')">胆码组</el-button>
             <el-button class="rule" size="small" type="success" @click="showRule('hz')">和值</el-button>
             <el-button class="rule" size="small" type="success" @click="showRule('jo')">奇偶</el-button>
+            <el-button class="rule" size="small" type="success" @click="showRule('dz')">断组</el-button>
           </div>
         </div>
         <div class="rule-check">
@@ -88,8 +89,8 @@
                   <span>【{{ index + 1 }}】{{ item.title }}</span>
                 </div>
                 <div>
-                  <el-checkbox v-model="item.isOrder" style="margin-right: 10px">排序</el-checkbox>
-                  <el-checkbox v-model="item.ignore" v-if="item.label!=='dmz'" @change="changeIg"
+                  <el-checkbox v-model="item.isOrder" v-if="item.label!=='dmz'&&item.label!=='dz'" style="margin-right: 10px">排序</el-checkbox>
+                  <el-checkbox v-model="item.ignore" v-if="item.label!=='dmz'&&item.label!=='dz'" @change="changeIg"
                                style="margin-right: 10px">容错
                   </el-checkbox>
                   <el-button type="warning" size="small" @click="changeRule(index)">修改</el-button>
@@ -105,6 +106,12 @@
                   <span style="margin-right: 10px">{{ child.values }}</span>
                   <span style="margin-right: 5px">出现个数:</span>
                   <span>{{ child.counts }}</span>
+                </div>
+              </div>
+              <div v-else-if="item.type === 'dz'">
+                <div v-for="(child,index) in item.checks" :key="index">
+                  <span style="margin-right: 5px">{{ child.label }}:</span>
+                  <span style="margin-right: 10px">{{ child.values }}</span>
                 </div>
               </div>
             </div>
@@ -195,7 +202,7 @@
             </el-table-column>
             <el-table-column
                 prop="smh"
-                label="三码和"
+                label="三码合"
                 align="center">
             </el-table-column>
             <el-table-column
@@ -236,7 +243,7 @@
         :visible.sync="normalRule.show"
         width="80%"
         center>
-      <div>
+      <div class="rule-form">
         <div v-if="normalRule.ruleTip" style="padding-bottom: 5px"><span>{{ normalRule.ruleTip }}:</span></div>
         <el-checkbox-group v-model="normalRule.checks" size="mini">
           <el-checkbox-button v-for="(item,index) in normalRule.valList" :label="item" :key="index">
@@ -255,7 +262,7 @@
         :visible.sync="dmzRule.show"
         width="90%"
         center>
-      <div>
+      <div class="rule-form">
         <div class="item-rule" v-for="(rule,index) in dmzRule.checks" :key="index">
           <div class="title"><span>{{ rule.label }}:</span></div>
           <el-checkbox-group v-model="rule.values" size="mini">
@@ -274,6 +281,28 @@
       <el-button type="primary" @click="saveDmzRule">确 定</el-button>
     </span>
     </el-dialog>
+
+    <el-dialog
+        :title="dzRule.title"
+        :visible.sync="dzRule.show"
+        width="90%"
+        center>
+      <div class="rule-form">
+        <div class="item-rule" v-for="(rule,index) in dzRule.checks" :key="index">
+          <div class="title"><span>{{ rule.label }}:</span></div>
+          <el-checkbox-group v-model="rule.values" size="mini">
+            <el-checkbox-button v-for="num in 10" :label="num-1" :key="num">
+              {{ num - 1 }}
+            </el-checkbox-button>
+          </el-checkbox-group>
+        </div>
+      </div>
+      <span slot="footer" class="dialog-footer">
+      <el-button @click="cancelRule('dz')">取 消</el-button>
+      <el-button type="primary" @click="saveDzRule">确 定</el-button>
+    </span>
+    </el-dialog>
+
     <el-dialog
         title="条件历史列表"
         :visible.sync="hisShow"
@@ -402,6 +431,17 @@ export default {
           {label: '', values: [], counts: []},
           {label: '', values: [], counts: []},
           {label: '', values: [], counts: []},
+        ]
+      },
+      dzRule: {
+        show: false,
+        title: '',
+        label: '',
+        id: null,
+        checks: [
+          {label: '', values: []},
+          {label: '', values: []},
+          {label: '', values: []},
         ]
       },
       codesResult: '',
@@ -589,6 +629,13 @@ export default {
         this.dmzRule.checks[0].label = '胆组1'
         this.dmzRule.checks[1].label = '胆组2'
         this.dmzRule.checks[2].label = '胆组3'
+      } else if (label === 'dz') {
+        this.dzRule.show = true
+        this.dzRule.label = label
+        this.dzRule.title = '断组'
+        this.dzRule.checks[0].label = '断组1'
+        this.dzRule.checks[1].label = '断组2'
+        this.dzRule.checks[2].label = '断组3'
       }
     },
     changeRule(index) {
@@ -600,6 +647,10 @@ export default {
       } else if (checkRule.type === 'dmz') {
         this.dmzRule.id = checkRule.id
         this.dmzRule.checks = structuredClone(checkRule.checks)
+        this.showRule(checkRule.label)
+      } else if (checkRule.type === 'dz') {
+        this.dzRule.id = checkRule.id
+        this.dzRule.checks = structuredClone(checkRule.checks)
         this.showRule(checkRule.label)
       }
     },
@@ -627,6 +678,8 @@ export default {
         Object.assign(this.$data.normalRule, this.$options.data().normalRule)
       } else if (type === 'dmz') {
         Object.assign(this.$data.dmzRule, this.$options.data().dmzRule)
+      } else if (type === 'dz') {
+        Object.assign(this.$data.dzRule, this.$options.data().dzRule)
       }
     },
     saveNormalRule() {
@@ -690,6 +743,33 @@ export default {
         this.checkRules.push(rule)
       }
       Object.assign(this.$data.dmzRule, this.$options.data().dmzRule)
+    },
+    saveDzRule() {
+      if (this.dzRule.checks[0].values.length === 0 ||
+          this.dzRule.checks[1].values.length === 0 ||
+          this.dzRule.checks[2].values.length === 0
+      ) {
+        this.$message.warning('断组的三个分组都必须选择!')
+        return
+      }
+      if (this.dzRule.id) {
+        let rule = this.checkRules.find(item => item.id === this.dzRule.id)
+        rule.checks[0].values = this.dzRule.checks[0].values
+        rule.checks[1].values = this.dzRule.checks[1].values
+        rule.checks[2].values = this.dzRule.checks[2].values
+      } else {
+        let rule = {
+          id: Date.now(),
+          title: this.dzRule.title,
+          label: this.dzRule.label,
+          type: 'dz',
+          ignore: false,
+          isOrder: false,
+          checks: this.dzRule.checks
+        }
+        this.checkRules.push(rule)
+      }
+      Object.assign(this.$data.dzRule, this.$options.data().dzRule)
     },
     showRuleHis() {
       this.hisShow = true

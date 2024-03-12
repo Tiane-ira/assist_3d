@@ -159,8 +159,8 @@ function getCalcGroups2(ruleList, igIndexArr) {
         let rule = ruleList[i]
         let withdraw = igIndexArr.indexOf(i) > -1 //当前规则组是否进行容错
         let ruleGroup = []
-        // 胆码组、容错条件、不参与排序出号的条件，当成一整个计算项进行计算
-        if ((rule.label === 'dmz') || !rule.isOrder || (rule.ignore && withdraw)) {
+        // 胆码组、断组、容错条件、不参与排序出号的条件，当成一整个计算项进行计算
+        if (rule.label === 'dmz' || rule.label === 'dz' || !rule.isOrder || (rule.ignore && withdraw)) {
             ruleGroup.push(rule)
         } else {
             for (let ruleValue of rule.checks) {
@@ -296,8 +296,8 @@ function getCalcGroups(ruleList, igIndexArr) {
         let rule = ruleList[i]
         let withdraw = igIndexArr.indexOf(i) > -1 //当前规则组是否进行容错
         let ruleGroup = []
-        // 胆码组、容错条件、不参与排序出号的条件，当成一整个计算项进行计算
-        if ((rule.label === 'dmz') || !rule.isOrder || (rule.ignore && withdraw)) {
+        // 胆码组、断组、容错条件、不参与排序出号的条件，当成一整个计算项进行计算
+        if (rule.label === 'dmz' || rule.label === 'dz' || !rule.isOrder || (rule.ignore && withdraw)) {
             ruleGroup.push(rule)
         } else {
             for (let ruleValue of rule.checks) {
@@ -486,6 +486,7 @@ function checkZjlmc(code, checks) {
     let zjDiff = [highDiff, midDiff, lowDiff].sort((a, b) => a - b)[1]
     return checks.indexOf(zjDiff) === -1
 }
+
 function checkZdlmc(code, checks) {
     let hun = parseInt(code[0])
     let ten = parseInt(code[1])
@@ -557,29 +558,47 @@ function checkMcsm(code, checks) {
     return checks.indexOf(diffCode) === -1
 }
 
-function checkCode(code, calcItem) {
+function checkDmz(code, calcItem) {
     let hun = parseInt(code[0])
     let ten = parseInt(code[1])
     let bit = parseInt(code[2])
-    let label = calcItem.label
-
-    // console.log("计算项", code, calcItem)
-
-
-    if (label === 'dmz') {
-        let dmzRules = calcItem.checks.filter(item => item.values.length > 0)
-        // 胆码组无容错
-        let count = dmzRules.length
-        for (let dmzRule of dmzRules) {
-            let bitCount = 0
-            for (let num of [hun, ten, bit]) {
-                if (dmzRule.values.indexOf(num) > -1) {
-                    bitCount++
-                }
+    let dmzRules = calcItem.checks.filter(item => item.values.length > 0)
+    // 胆码组无容错
+    let count = dmzRules.length
+    for (let dmzRule of dmzRules) {
+        let bitCount = 0
+        for (let num of [hun, ten, bit]) {
+            if (dmzRule.values.indexOf(num) > -1) {
+                bitCount++
             }
-            if (dmzRule.counts.indexOf(bitCount) > -1) count--
         }
-        return count === 0
+        if (dmzRule.counts.indexOf(bitCount) > -1) count--
+    }
+    return count === 0
+}
+
+function checkDz(code, calcItem) {
+    let hun = parseInt(code[0])
+    let ten = parseInt(code[1])
+    let bit = parseInt(code[2])
+    let dzRules = calcItem.checks.map(item => item.values)
+    let countArr = [0, 0, 0]
+    for (let i = 0; i < dzRules.length; i++) {
+        [hun, ten, bit].forEach(item => {
+            if (dzRules[i].indexOf(item) > -1) countArr[i]++
+        })
+    }
+    return !countArr.every(item => item === 1)
+}
+
+function checkCode(code, calcItem) {
+    let label = calcItem.label
+    // console.log("计算项", code, calcItem)
+    if (label === 'dmz') {
+        return checkDmz(code, calcItem);
+    }
+    if (label === 'dz') {
+        return checkDz(code, calcItem);
     } else if (calcItem.ignore) {
         let checks = calcItem.checks
         // 容错计算,容错忽略排序,规则作为整体计算反向
@@ -649,6 +668,9 @@ function checkCode(code, calcItem) {
             return !checkMcsm(code, checks);
         }
     } else {
+        let hun = parseInt(code[0])
+        let ten = parseInt(code[1])
+        let bit = parseInt(code[2])
         // 正常条件排列项计算
         if (label === 'jo') {
             let jCount = 0

@@ -8,7 +8,6 @@
   "scripts": {
     "start": "vue-cli-service electron:serve",
     "win-build-win": "set NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service electron:build --win",
-    "win-build-mac": "set NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service electron:build --mac",
     "mac-build-mac": "export NODE_OPTIONS=--openssl-legacy-provider && export PYTHON_PATH=/Library/Frameworks/Python.framework/Versions/2.7/bin/python && vue-cli-service electron:build --mac",
     "mac-build-win": "export NODE_OPTIONS=--openssl-legacy-provider && export PYTHON_PATH=/Library/Frameworks/Python.framework/Versions/2.7/bin/python && vue-cli-service electron:build --win",
     "icon": "electron-icon-builder --input=./public/icon.png --output=build --flatten"

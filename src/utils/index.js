@@ -208,7 +208,9 @@ export const getNumObjByCodes = (codeList) => {
         let diff = Math.max(hun, ten, bit) - Math.min(hun, ten, bit)
         let dzx = getDzxLabel([hun, ten, bit])
         let lye = get012Label([hun, ten, bit])
-        objList.push({code, sum, diff, dzx, lye})
+        let smc = getSmcLabel([hun, ten, bit])
+        let smh = getSmhLabel([hun, ten, bit])
+        objList.push({code, sum, diff, dzx, lye, smc, smh})
     }
     return objList
 }
@@ -235,6 +237,22 @@ function get012Label(bitList) {
         labelArr.push(num % 3)
     }
     return labelArr.sort().join('')
+}
+
+function getSmcLabel(bitList) {
+    let highDiff = Math.abs(bitList[0] - bitList[1])
+    let midDiff = Math.abs(bitList[1] - bitList[2])
+    let lowDiff = Math.abs(bitList[0] - bitList[2])
+    let labelArr = [highDiff, midDiff, lowDiff].sort((a, b) => a - b)
+    return `${labelArr[0]}${labelArr[1]}${labelArr[2]}`
+}
+
+function getSmhLabel(bitList) {
+    let highSum = (bitList[0] + bitList[1]) % 10
+    let midSum = (bitList[1] + bitList[2]) % 10
+    let lowSum = (bitList[0] + bitList[2]) % 10
+    let labelArr = [highSum, midSum, lowSum].sort((a, b) => a - b)
+    return `${labelArr[0]}${labelArr[1]}${labelArr[2]}`
 }
 
 export const formatDate = (date, format = 'YYYY-MM-DD HH:mm:ss') => {

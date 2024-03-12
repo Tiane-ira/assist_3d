@@ -66,10 +66,11 @@
             <el-button class="rule" size="small" type="success" @click="showRule('kd')">跨度</el-button>
             <el-button class="rule" size="small" type="success" @click="showRule('012l')">012路</el-button>
             <el-button class="rule" size="small" type="success" @click="showRule('dzx')">大中小</el-button>
-            <el-button class="rule" size="small" type="success" @click="showRule('lmc')">两码差</el-button>
             <el-button class="rule" size="small" type="success" @click="showRule('lmh')">两码和</el-button>
-            <!--<el-button class="rule" size="small" type="success" @click="showRule('zjz')">中间值</el-button>-->
-            <!--<el-button class="rule" size="small" type="success" @click="showRule('zxz')">最小值</el-button>-->
+            <el-button class="rule" size="small" type="success" @click="showRule('rylmc')">任意两码差</el-button>
+            <el-button class="rule" size="small" type="success" @click="showRule('zxlmc')">最小两码差</el-button>
+            <el-button class="rule" size="small" type="success" @click="showRule('zjlmc')">中间两码差</el-button>
+            <el-button class="rule" size="small" type="success" @click="showRule('zdlmc')">最大两码差</el-button>
           </div>
           <div>
             <el-button class="rule" size="small" type="success" @click="showRule('mcsm')">码差三码</el-button>
@@ -185,6 +186,16 @@
             <el-table-column
                 prop="lye"
                 label="012路"
+                align="center">
+            </el-table-column>
+            <el-table-column
+                prop="smc"
+                label="三码差"
+                align="center">
+            </el-table-column>
+            <el-table-column
+                prop="smh"
+                label="三码和"
                 align="center">
             </el-table-column>
             <el-table-column
@@ -516,10 +527,25 @@ export default {
         this.normalRule.label = label
         this.normalRule.title = '两码和'
         this.normalRule.valList = getSeqArr(18)
-      } else if (label === 'lmc') {
+      } else if (label === 'rylmc') {
         this.normalRule.show = true
         this.normalRule.label = label
-        this.normalRule.title = '两码差'
+        this.normalRule.title = '任意两码差'
+        this.normalRule.valList = getSeqArr(9)
+      } else if (label === 'zxlmc') {
+        this.normalRule.show = true
+        this.normalRule.label = label
+        this.normalRule.title = '最小两码差'
+        this.normalRule.valList = getSeqArr(9)
+      } else if (label === 'zjlmc') {
+        this.normalRule.show = true
+        this.normalRule.label = label
+        this.normalRule.title = '中间两码差'
+        this.normalRule.valList = getSeqArr(9)
+      } else if (label === 'zdlmc') {
+        this.normalRule.show = true
+        this.normalRule.label = label
+        this.normalRule.title = '最大两码差'
         this.normalRule.valList = getSeqArr(9)
       } else if (label === 'zdz') {
         this.normalRule.show = true

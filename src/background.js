@@ -452,7 +452,7 @@ function checkLmh(code, checks) {
     return true
 }
 
-function checkLmc(code, checks) {
+function checkRylmc(code, checks) {
     let hun = parseInt(code[0])
     let ten = parseInt(code[1])
     let bit = parseInt(code[2])
@@ -463,6 +463,38 @@ function checkLmc(code, checks) {
         if (checks.indexOf(diff.toString()) > -1) return false
     }
     return true
+}
+
+function checkZxlmc(code, checks) {
+    let hun = parseInt(code[0])
+    let ten = parseInt(code[1])
+    let bit = parseInt(code[2])
+    let highDiff = Math.abs(hun - ten)
+    let midDiff = Math.abs(hun - bit)
+    let lowDiff = Math.abs(ten - bit)
+    let minDiff = [highDiff, midDiff, lowDiff].sort((a, b) => a - b)[0]
+    return checks.indexOf(minDiff) === -1
+}
+
+function checkZjlmc(code, checks) {
+    let hun = parseInt(code[0])
+    let ten = parseInt(code[1])
+    let bit = parseInt(code[2])
+    let highDiff = Math.abs(hun - ten)
+    let midDiff = Math.abs(hun - bit)
+    let lowDiff = Math.abs(ten - bit)
+    let zjDiff = [highDiff, midDiff, lowDiff].sort((a, b) => a - b)[1]
+    return checks.indexOf(zjDiff) === -1
+}
+function checkZdlmc(code, checks) {
+    let hun = parseInt(code[0])
+    let ten = parseInt(code[1])
+    let bit = parseInt(code[2])
+    let highDiff = Math.abs(hun - ten)
+    let midDiff = Math.abs(hun - bit)
+    let lowDiff = Math.abs(ten - bit)
+    let maxDiff = [highDiff, midDiff, lowDiff].sort((a, b) => a - b)[2]
+    return checks.indexOf(maxDiff) === -1
 }
 
 function checkZdz(code, checks) {
@@ -559,8 +591,14 @@ function checkCode(code, calcItem) {
             return checkKd(code, checks);
         } else if (label === 'lmh') {
             return checkLmh(code, checks);
-        } else if (label === 'lmc') {
-            return checkLmc(code, checks);
+        } else if (label === 'rylmc') {
+            return checkRylmc(code, checks);
+        } else if (label === 'zxlmc') {
+            return checkZxlmc(code, checks);
+        } else if (label === 'zjlmc') {
+            return checkZjlmc(code, checks);
+        } else if (label === 'zdlmc') {
+            return checkZdlmc(code, checks);
         } else if (label === 'zdz') {
             return checkZdz(code, checks);
         } else if (label === 'zjz') {
@@ -587,8 +625,14 @@ function checkCode(code, calcItem) {
             return !checkKd(code, checks);
         } else if (label === 'lmh') {
             return !checkLmh(code, checks);
-        } else if (label === 'lmc') {
-            return !checkLmc(code, checks);
+        } else if (label === 'rylmc') {
+            return !checkRylmc(code, checks);
+        } else if (label === 'zxlmc') {
+            return !checkZxlmc(code, checks);
+        } else if (label === 'zjlmc') {
+            return !checkZjlmc(code, checks);
+        } else if (label === 'zdlmc') {
+            return !checkZdlmc(code, checks);
         } else if (label === 'zdz') {
             return !checkZdz(code, checks);
         } else if (label === 'zjz') {

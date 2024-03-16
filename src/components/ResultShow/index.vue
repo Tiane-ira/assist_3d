@@ -5,7 +5,9 @@ import { nextTick } from "vue";
 export default {
   name: "ResultShow",
   data() {
-    return {};
+    return {
+      tableHeight: window.innerHeight / 2,
+    };
   },
   computed: {
     ...mapState(["resultList", "codesResult"]),
@@ -23,6 +25,13 @@ export default {
       });
     },
   },
+  mounted() {
+    window.onresize = () => {
+      return (() => {
+        this.tableHeight = window.innerHeight / 2;
+      })();
+    };
+  },
 };
 </script>
 
@@ -32,7 +41,7 @@ export default {
       <el-table
         :data="resultList"
         @sort-change="sortChange"
-        max-height="350"
+        :max-height="tableHeight"
         style="width: 100%"
         :border="true"
         :header-cell-style="{ 'text-align': 'center' }"

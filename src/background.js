@@ -6,6 +6,7 @@ import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 const path = require("path");
+const debug = false;
 
 const Store = require("electron-store");
 const store = new Store();
@@ -18,8 +19,8 @@ protocol.registerSchemesAsPrivileged([
 async function createWindow() {
   // Create the browser window.
   const win = new BrowserWindow({
-    width: 1100,
-    height: 600,
+    minWidth: 1100,
+    minHeight: 600,
     autoHideMenuBar: true,
     icon: "build/icons/icon.ico",
     webPreferences: {
@@ -28,6 +29,7 @@ async function createWindow() {
       devTools: isDevelopment, // 禁用开发者工具
     },
   });
+  win.maximize();
 
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
@@ -783,7 +785,9 @@ function codesFilter(codeList, ruleList, igCounts, orderType) {
       igAllIndexArr.push(i);
     }
   }
-  console.log("可容错条件:", igAllIndexArr);
+  if (debug) {
+    console.log("可容错条件:", igAllIndexArr);
+  }
   // 获取所有容错条件下标子集,按照子数组和子数组元素之和进行倒叙排序
   let subIgIndexArrList = subsets(igAllIndexArr).sort((arr1, arr2) => {
     let lenDiff = arr2.length - arr1.length;
@@ -795,11 +799,15 @@ function codesFilter(codeList, ruleList, igCounts, orderType) {
     }
     return lenDiff;
   });
-  console.log("容错条件组合:", subIgIndexArrList);
+  if (debug) {
+    console.log("容错条件组合:", subIgIndexArrList);
+  }
   for (let igCount of igCounts) {
     let igIndexArrList = getIgIndexArrList(igCount, subIgIndexArrList); //获取当前容错数量的所有容错条件的组合可能
     for (let igIndexArr of igIndexArrList) {
-      console.log("容错下标组", igIndexArrList);
+      if (debug) {
+        console.log("容错下标组", igIndexArrList);
+      }
       let calcGroups;
       if (orderType) {
         console.log("交叉排列");
@@ -808,10 +816,14 @@ function codesFilter(codeList, ruleList, igCounts, orderType) {
         console.log("顺序排列");
         calcGroups = getCalcGroups(ruleList, igIndexArr);
       }
-      console.log("当前容错计算项", igIndexArr, calcGroups);
+      if (debug) {
+        console.log("当前容错计算项", igIndexArr, calcGroups);
+      }
       for (let calcGroup of calcGroups) {
         let filterCodes = doFilter(codeList, calcGroup); //单次过滤得到的code列表
-        // console.log('过滤结果', filterCodes)
+        if (debug) {
+          console.log("过滤结果", filterCodes);
+        }
         for (let filterCode of filterCodes) {
           if (resultCodes.indexOf(filterCode) === -1) {
             resultCodes.push(filterCode);

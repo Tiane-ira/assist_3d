@@ -36,19 +36,19 @@ export default {
   },
   methods: {
     bitAll() {
-      this.$store.commit("CHANGE_BIT_LIST", allNum);
+      this.$store.commit("CHANGE_BIT_LIST", structuredClone(allNum));
     },
     bitClear() {
       this.$store.commit("CHANGE_BIT_LIST", []);
     },
     tenAll() {
-      this.$store.commit("CHANGE_TEN_LIST", allNum);
+      this.$store.commit("CHANGE_TEN_LIST", structuredClone(allNum));
     },
     tenClear() {
       this.$store.commit("CHANGE_TEN_LIST", []);
     },
     hunAll() {
-      this.$store.commit("CHANGE_HUN_LIST", allNum);
+      this.$store.commit("CHANGE_HUN_LIST", structuredClone(allNum));
     },
     hunClear() {
       this.$store.commit("CHANGE_HUN_LIST", []);

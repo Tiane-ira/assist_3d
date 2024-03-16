@@ -40,7 +40,7 @@ export default new Vuex.Store({
       state.tenList = tenList;
     },
     CHANGE_HUN_LIST(state, hunList) {
-      state.hunList = hunList;
+      state.hundredList = hunList;
     },
     CHANG_CHECK_RULES(state, ruleList) {
       state.checkRules = ruleList;

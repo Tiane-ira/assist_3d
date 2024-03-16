@@ -1,10 +1,5 @@
 <script>
-import {
-  getIgCounts,
-  getNumDirect,
-  getNumGroup,
-  getNumObjByCodes,
-} from "@/utils/code";
+import { getIgCounts, getNumDirect, getNumGroup } from "@/utils/code";
 import { mapGetters, mapState } from "vuex";
 import { formatDate } from "@/utils/date";
 
@@ -59,7 +54,7 @@ export default {
         codeList = getNumDirect(this.bitList, this.tenList, this.hundredList);
       }
       let igCounts = getIgCounts(this.igMin, this.igMax); // 默认0-0无容错
-      console.log(codeList, igCounts);
+      // console.log(codeList, igCounts);
       window.electron
         .filterCodes(codeList, this.checkRules, igCounts, this.orderType)
         .then((filteredCodeList) => {

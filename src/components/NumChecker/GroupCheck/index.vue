@@ -28,10 +28,10 @@ export default {
   },
   methods: {
     groupAll() {
-      this.$store.commit("CHANGE_GROUP_TYPE", allNum);
+      this.$store.commit("CHANGE_GROUP_LIST", structuredClone(allNum));
     },
     groupClear() {
-      this.$store.commit("CHANGE_GROUP_TYPE", []);
+      this.$store.commit("CHANGE_GROUP_LIST", []);
     },
   },
 };

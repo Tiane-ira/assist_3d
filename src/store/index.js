@@ -116,7 +116,6 @@ export default new Vuex.Store({
     },
     async loadConfig({ commit }) {
       let configList = await getConfigList();
-      console.log(configList);
       if (configList.length > 0) {
         commit("SAVE_CONFIG_LIST", configList);
         commit("SET_CONFIG", 0);

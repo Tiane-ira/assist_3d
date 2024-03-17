@@ -444,9 +444,9 @@ function checkJo(code, checks) {
   let hun = parseInt(code[0]);
   let ten = parseInt(code[1]);
   let bit = parseInt(code[2]);
-  let jCount = 0;
+  let oCount = 0;
   for (let num of [hun, ten, bit]) {
-    if (num % 2 === 1) jCount++;
+    if (num % 2 === 0) oCount++;
   }
   let ruleJiOuCounts = [];
   for (let item of checks) {
@@ -455,7 +455,7 @@ function checkJo(code, checks) {
       ruleJiOuCounts.push(jiOuCount);
     }
   }
-  return ruleJiOuCounts.indexOf(jCount) === -1;
+  return ruleJiOuCounts.indexOf(oCount) === -1;
 }
 
 function checkHz(code, checks) {

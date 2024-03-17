@@ -24,6 +24,7 @@ export default {
       "igMax",
       "resultList",
       "checkRules",
+      "codesResult",
     ]),
     ...mapGetters(["isGroup"]),
     hisList() {

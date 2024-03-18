@@ -47,8 +47,6 @@ export default {
         :header-cell-style="{ 'text-align': 'center' }"
         ref="table"
       >
-        <el-table-column label="序号" type="index" align="center">
-        </el-table-column>
         <el-table-column prop="code" label="号码" sortable align="center">
         </el-table-column>
         <el-table-column prop="sum" label="和值" sortable align="center">

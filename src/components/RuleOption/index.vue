@@ -75,27 +75,27 @@ export default {
       } else if (label === "lmh") {
         this.normalRule.show = true;
         this.normalRule.label = label;
-        this.normalRule.title = "两码和";
-        this.normalRule.valList = getSeqArr(18);
+        this.normalRule.title = "任意两码合";
+        this.normalRule.valList = getSeqArr(9);
       } else if (label === "rylmc") {
         this.normalRule.show = true;
         this.normalRule.label = label;
         this.normalRule.title = "任意两码差";
         this.normalRule.valList = getSeqArr(9);
-      } else if (label === "zxlmc") {
+      } else if (label === "zxlmh") {
         this.normalRule.show = true;
         this.normalRule.label = label;
-        this.normalRule.title = "最小两码差";
+        this.normalRule.title = "最小两码合";
         this.normalRule.valList = getSeqArr(9);
-      } else if (label === "zjlmc") {
+      } else if (label === "zjlmh") {
         this.normalRule.show = true;
         this.normalRule.label = label;
-        this.normalRule.title = "中间两码差";
+        this.normalRule.title = "中间两码合";
         this.normalRule.valList = getSeqArr(9);
-      } else if (label === "zdlmc") {
+      } else if (label === "zdlmh") {
         this.normalRule.show = true;
         this.normalRule.label = label;
-        this.normalRule.title = "最大两码差";
+        this.normalRule.title = "最大两码合";
         this.normalRule.valList = getSeqArr(9);
       } else if (label === "zdz") {
         this.normalRule.show = true;
@@ -314,8 +314,8 @@ export default {
           class="rule"
           size="small"
           type="success"
-          @click="showRule('lmh')"
-          >两码和
+          @click="showRule('rylmc')"
+          >任意两码差
         </el-button>
       </div>
       <div class="row">
@@ -323,29 +323,29 @@ export default {
           class="rule"
           size="small"
           type="success"
-          @click="showRule('rylmc')"
-          >任意两码差
+          @click="showRule('lmh')"
+          >两码合
         </el-button>
         <el-button
           class="rule"
           size="small"
           type="success"
-          @click="showRule('zxlmc')"
-          >最小两码差
+          @click="showRule('zxlmh')"
+          >最小两码合
         </el-button>
         <el-button
           class="rule"
           size="small"
           type="success"
-          @click="showRule('zjlmc')"
-          >中间两码差
+          @click="showRule('zjlmh')"
+          >中间两码合
         </el-button>
         <el-button
           class="rule"
           size="small"
           type="success"
-          @click="showRule('zdlmc')"
-          >最大两码差
+          @click="showRule('zdlmh')"
+          >最大两码合
         </el-button>
       </div>
       <div class="row">

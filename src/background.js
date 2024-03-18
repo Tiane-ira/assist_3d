@@ -6,7 +6,8 @@ import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 const path = require("path");
-const debug = false;
+const debug = true;
+// const debug = false;
 
 const Store = require("electron-store");
 const store = new Store();
@@ -428,6 +429,9 @@ function doFilter(codeList, calcGroup) {
   for (let code of codeList) {
     let count = calcGroup.length;
     for (const calcItem of calcGroup) {
+      if (debug) {
+        console.log(code, calcItem);
+      }
       let ok = checkCode(code, calcItem);
       if (ok) count--;
     }
@@ -478,9 +482,9 @@ function checkLmh(code, checks) {
   let hun = parseInt(code[0]);
   let ten = parseInt(code[1]);
   let bit = parseInt(code[2]);
-  let highSum = hun + ten;
-  let midSum = hun + bit;
-  let lowSum = ten + bit;
+  let highSum = (hun + ten) % 10;
+  let midSum = (hun + bit) % 10;
+  let lowSum = (ten + bit) % 10;
   for (let sum of [highSum, midSum, lowSum]) {
     if (checks.indexOf(sum.toString()) > -1) return false;
   }
@@ -500,37 +504,37 @@ function checkRylmc(code, checks) {
   return true;
 }
 
-function checkZxlmc(code, checks) {
+function checkZxlmh(code, checks) {
   let hun = parseInt(code[0]);
   let ten = parseInt(code[1]);
   let bit = parseInt(code[2]);
-  let highDiff = Math.abs(hun - ten);
-  let midDiff = Math.abs(hun - bit);
-  let lowDiff = Math.abs(ten - bit);
-  let minDiff = [highDiff, midDiff, lowDiff].sort((a, b) => a - b)[0];
-  return checks.indexOf(minDiff) === -1;
+  let highSum = (hun + ten) % 10;
+  let midSum = (hun + bit) % 10;
+  let lowSum = (ten + bit) % 10;
+  let minSum = [highSum, midSum, lowSum].sort((a, b) => a - b)[0];
+  return checks.indexOf(minSum.toString()) === -1;
 }
 
-function checkZjlmc(code, checks) {
+function checkZjlmh(code, checks) {
   let hun = parseInt(code[0]);
   let ten = parseInt(code[1]);
   let bit = parseInt(code[2]);
-  let highDiff = Math.abs(hun - ten);
-  let midDiff = Math.abs(hun - bit);
-  let lowDiff = Math.abs(ten - bit);
-  let zjDiff = [highDiff, midDiff, lowDiff].sort((a, b) => a - b)[1];
-  return checks.indexOf(zjDiff) === -1;
+  let highSum = (hun + ten) % 10;
+  let midSum = (hun + bit) % 10;
+  let lowSum = (ten + bit) % 10;
+  let zjSum = [highSum, midSum, lowSum].sort((a, b) => a - b)[1];
+  return checks.indexOf(zjSum.toString()) === -1;
 }
 
-function checkZdlmc(code, checks) {
+function checkZdlmh(code, checks) {
   let hun = parseInt(code[0]);
   let ten = parseInt(code[1]);
   let bit = parseInt(code[2]);
-  let highDiff = Math.abs(hun - ten);
-  let midDiff = Math.abs(hun - bit);
-  let lowDiff = Math.abs(ten - bit);
-  let maxDiff = [highDiff, midDiff, lowDiff].sort((a, b) => a - b)[2];
-  return checks.indexOf(maxDiff) === -1;
+  let highSum = (hun + ten) % 10;
+  let midSum = (hun + bit) % 10;
+  let lowSum = (ten + bit) % 10;
+  let maxSum = [highSum, midSum, lowSum].sort((a, b) => a - b)[2];
+  return checks.indexOf(maxSum.toString()) === -1;
 }
 
 function checkZdz(code, checks) {
@@ -647,12 +651,13 @@ function checkCode(code, calcItem) {
       return checkLmh(code, checks);
     } else if (label === "rylmc") {
       return checkRylmc(code, checks);
-    } else if (label === "zxlmc") {
-      return checkZxlmc(code, checks);
-    } else if (label === "zjlmc") {
-      return checkZjlmc(code, checks);
-    } else if (label === "zdlmc") {
-      return checkZdlmc(code, checks);
+    } else if (label === "zxlmh") {
+      console.log(code, checks);
+      return checkZxlmh(code, checks);
+    } else if (label === "zjlmh") {
+      return checkZjlmh(code, checks);
+    } else if (label === "zdlmh") {
+      return checkZdlmh(code, checks);
     } else if (label === "zdz") {
       return checkZdz(code, checks);
     } else if (label === "zjz") {
@@ -681,12 +686,12 @@ function checkCode(code, calcItem) {
       return !checkLmh(code, checks);
     } else if (label === "rylmc") {
       return !checkRylmc(code, checks);
-    } else if (label === "zxlmc") {
-      return !checkZxlmc(code, checks);
-    } else if (label === "zjlmc") {
-      return !checkZjlmc(code, checks);
-    } else if (label === "zdlmc") {
-      return !checkZdlmc(code, checks);
+    } else if (label === "zxlmh") {
+      return !checkZxlmh(code, checks);
+    } else if (label === "zjlmh") {
+      return !checkZjlmh(code, checks);
+    } else if (label === "zdlmh") {
+      return !checkZdlmh(code, checks);
     } else if (label === "zdz") {
       return !checkZdz(code, checks);
     } else if (label === "zjz") {
@@ -721,19 +726,37 @@ function checkCode(code, calcItem) {
       let diff = Math.max(hun, ten, bit) - Math.min(hun, ten, bit);
       return diff === parseInt(calcItem.ruleValue);
     } else if (label === "lmh") {
-      let highSum = hun + ten;
-      let midSum = hun + bit;
-      let lowSum = ten + bit;
+      let highSum = (hun + ten) % 10;
+      let midSum = (hun + bit) % 10;
+      let lowSum = (ten + bit) % 10;
       return (
         [highSum, midSum, lowSum].indexOf(parseInt(calcItem.ruleValue)) > -1
       );
-    } else if (label === "lmc") {
+    } else if (label === "rylmc") {
       let highDiff = Math.abs(hun - ten);
       let midDiff = Math.abs(hun - bit);
       let lowDiff = Math.abs(ten - bit);
       return (
         [highDiff, midDiff, lowDiff].indexOf(parseInt(calcItem.ruleValue)) > -1
       );
+    } else if (label === "zxlmh") {
+      let highSum = (hun + ten) % 10;
+      let midSum = (hun + bit) % 10;
+      let lowSum = (ten + bit) % 10;
+      let orderedArr = [highSum, midSum, lowSum].sort((a, b) => a - b);
+      return orderedArr[0] === parseInt(calcItem.ruleValue);
+    } else if (label === "zjlmh") {
+      let highSum = (hun + ten) % 10;
+      let midSum = (hun + bit) % 10;
+      let lowSum = (ten + bit) % 10;
+      let orderedArr = [highSum, midSum, lowSum].sort((a, b) => a - b);
+      return orderedArr[1] === parseInt(calcItem.ruleValue);
+    } else if (label === "zdlmh") {
+      let highSum = (hun + ten) % 10;
+      let midSum = (hun + bit) % 10;
+      let lowSum = (ten + bit) % 10;
+      let orderedArr = [highSum, midSum, lowSum].sort((a, b) => a - b);
+      return orderedArr[2] === parseInt(calcItem.ruleValue);
     } else if (label === "zdz") {
       let max = Math.max(hun, ten, bit);
       return max === parseInt(calcItem.ruleValue);
@@ -817,7 +840,7 @@ function codesFilter(codeList, ruleList, igCounts, orderType) {
         calcGroups = getCalcGroups(ruleList, igIndexArr);
       }
       if (debug) {
-        console.log("当前容错计算项", igIndexArr, calcGroups);
+        console.log("当前容错计算项", igIndexArr, calcGroups, codeList);
       }
       for (let calcGroup of calcGroups) {
         let filterCodes = doFilter(codeList, calcGroup); //单次过滤得到的code列表

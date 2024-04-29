@@ -148,6 +148,11 @@ export default {
         this.dzRule.checks[2].label = "断组3";
       }
     },
+    reverseRule(type){
+      if (type === "normal") {
+        this.normalRule.checks = this.normalRule.valList.filter(item => this.normalRule.checks.indexOf(item) === -1)
+      }
+    },
     cancelRule(type) {
       if (type === "normal") {
         Object.assign(this.$data.normalRule, this.$options.data().normalRule);
@@ -414,6 +419,7 @@ export default {
         </el-checkbox-group>
       </div>
       <span slot="footer" class="dialog-footer">
+        <el-button @click="reverseRule('normal')">排 除</el-button>
         <el-button @click="cancelRule('normal')">取 消</el-button>
         <el-button type="primary" @click="saveNormalRule">确 定</el-button>
       </span>

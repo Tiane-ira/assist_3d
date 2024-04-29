@@ -10,7 +10,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["resultList", "codesResult"]),
+    ...mapState(["resultList", "codesResult", "transCodes"]),
   },
   methods: {
     sortChange() {
@@ -77,6 +77,9 @@ export default {
     <el-card class="num-card" :body-style="{ padding: '10px' }">
       <span v-if="codesResult === ''">没数据了</span>
       <span v-else>{{ codesResult }}</span>
+    </el-card>
+    <el-card class="num-card" v-show="transCodes.length > 0" :body-style="{ padding: '10px' }">
+      <span>{{ transCodes.join(" ") }}</span>
     </el-card>
     <el-card>
       <el-row :gutter="20">

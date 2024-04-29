@@ -15,6 +15,7 @@ export default {
   },
   computed: {
     ...mapState([
+      "activeTab",
       "hundredList",
       "tenList",
       "bitList",
@@ -25,6 +26,7 @@ export default {
       "resultList",
       "checkRules",
       "codesResult",
+      "transCodes",
     ]),
     ...mapGetters(["isGroup"]),
     hisList() {
@@ -111,6 +113,14 @@ export default {
       this.saveConfigShow = false;
       this.$message.success("保存条件成功");
     },
+    copyTransResult(){
+      if (this.resultList.length === 0) {
+        this.$message.error("结果为空无法复制");
+        return;
+      }
+      window.electron.copy2Clipboard(this.transCodes.join(" "));
+      this.$message.success(`已复制组转直的${this.transCodes.length}个结果`);
+    }
   },
 };
 </script>
@@ -130,6 +140,7 @@ export default {
       >保存条件
     </el-button>
     <el-button type="warning" @click="showRuleHis">条件历史</el-button>
+    <el-button v-if="activeTab==='group'" :disabled="!resultList.length" type="info" @click="copyTransResult">复制转直结果</el-button>
     <el-dialog :visible.sync="hisShow" center title="条件历史列表" width="60%">
       <el-table
         ref="hisTable"

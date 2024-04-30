@@ -28,6 +28,7 @@ module.exports = defineConfig({
                     ] // 打包的目标类型,支持很多类型，具体看文档
                 },
                 mac: {
+                    category: "public.app-category.finance",
                     icon: "build/icons/icon.icns",
                     target: [
                         {
@@ -49,7 +50,9 @@ module.exports = defineConfig({
                     shortcutName: "assist_3d", // 快捷方式名称
                     runAfterFinish: true,//是否安装完成后运行
                 },
-                dmg: {}
+                dmg: {
+                    icon: "build/icons/icon.icns",
+                }
             },
         }
     }

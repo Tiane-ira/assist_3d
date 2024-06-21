@@ -1,8 +1,9 @@
 <script>
 import { getSeqArr } from "@/utils/code";
-import { all012l, allDzx, allJiOu, allMCSM } from "@/config";
+import {all012l, allDzx, allHmxt, allJiOu, allJodw, allMCSM} from "@/config";
 import IgnoreErrorCheck from "@/components/IgnoreErrorCheck/index.vue";
 import OrderCheck from "@/components/OrderCheck/index.vue";
+import {mapState} from "vuex";
 
 export default {
   name: "RuleOption",
@@ -51,6 +52,7 @@ export default {
         this.$store.commit("CHANG_CHECK_RULES", newList);
       },
     },
+    ...mapState(["activeTab"]),
   },
   methods: {
     changeIg(checked) {
@@ -132,6 +134,16 @@ export default {
         this.normalRule.label = label;
         this.normalRule.title = "码差三码";
         this.normalRule.valList = structuredClone(allMCSM);
+      } else if (label === "hmxt") {
+        this.normalRule.show = true;
+        this.normalRule.label = label;
+        this.normalRule.title = "号码形态";
+        this.normalRule.valList = structuredClone(allHmxt);
+      } else if (label === "jodw") {
+        this.normalRule.show = true;
+        this.normalRule.label = label;
+        this.normalRule.title = "奇偶定位";
+        this.normalRule.valList = structuredClone(allJodw);
       } else if (label === "dmz") {
         this.dmzRule.show = true;
         this.dmzRule.label = label;
@@ -395,6 +407,22 @@ export default {
           type="success"
           @click="showRule('dz')"
           >断组
+        </el-button>
+      </div>
+      <div class="row" v-if="activeTab === 'direct'">
+        <el-button
+            class="rule"
+            size="small"
+            type="success"
+            @click="showRule('hmxt')"
+        >号码形态
+        </el-button>
+        <el-button
+            class="rule"
+            size="small"
+            type="success"
+            @click="showRule('jodw')"
+        >奇偶定位
         </el-button>
       </div>
     </el-card>

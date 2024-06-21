@@ -56,6 +56,7 @@ export default {
       } else {
         codeList = getNumDirect(this.bitList, this.tenList, this.hundredList);
       }
+      console.log(codeList)
       let igCounts = getIgCounts(this.igMin, this.igMax); // 默认0-0无容错
       // console.log(codeList, igCounts);
       window.electron

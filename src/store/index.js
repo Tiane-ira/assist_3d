@@ -27,6 +27,10 @@ export default new Vuex.Store({
   mutations: {
     CHANGE_CHECK_TAB(state, activeTab) {
       state.activeTab = activeTab;
+      state.checkRules = []
+      state.resultList = []
+      state.codesResult = ""
+      state.transCodes = []
     },
     CHANGE_GROUP_LIST(state, groupList) {
       state.groupList = groupList;
@@ -103,9 +107,11 @@ export default new Vuex.Store({
     },
     CHANGE_CODES_RESULT(state, codesList) {
       state.codesResult = codesList.join(" ");
-      state.transCodes = []
-      for (let code of codesList){
-        state.transCodes = [...state.transCodes, ...group2Direct([...code])]
+      if (state.activeTab === "group"){
+        state.transCodes = []
+        for (let code of codesList){
+          state.transCodes = [...state.transCodes, ...group2Direct([...code])]
+        }
       }
     },
     DELETE_CODE(state, code) {

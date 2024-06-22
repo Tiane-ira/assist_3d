@@ -605,6 +605,8 @@ function getHmxtLabel(hun, ten, bit) {
         hmxt = "上升形"
     } else if (hun > ten && ten > bit) {
         hmxt = "下降形"
+    }  else if (hun === ten || ten === bit || hun === bit) {
+        hmxt = "组三"
     } else if (hun < ten && ten > bit) {
         hmxt = "凸起形"
     } else if (hun > ten && ten < bit) {

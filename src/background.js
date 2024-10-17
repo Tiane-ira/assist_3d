@@ -20,7 +20,7 @@ protocol.registerSchemesAsPrivileged([
 async function createWindow() {
     // Create the browser window.
     const win = new BrowserWindow({
-        minWidth: 1100,
+        minWidth: 1200,
         minHeight: 600,
         autoHideMenuBar: true,
         icon: "build/icons/icon.ico",
@@ -668,6 +668,54 @@ function checkDz(code, calcItem) {
     return !countArr.every((item) => item === 1);
 }
 
+function checkDzxs(code, calcItem) {
+    let hun = parseInt(code[0]);
+    let ten = parseInt(code[1]);
+    let bit = parseInt(code[2]);
+    let arr = [hun, ten, bit].sort((a, b) => a - b);
+    let passCount = 0;
+    for (let index = 2; index >= 0; index--) {
+        let match = calcItem.checks[index].findIndex(item => item === arr[index]);
+        if (match > -1) {
+            passCount++;
+        }
+    }
+    let condNum = calcItem.conditionNum;
+    return passCount >= condNum;
+}
+
+function checkDzxlmh(code, calcItem) {
+    let hun = parseInt(code[0]);
+    let ten = parseInt(code[1]);
+    let bit = parseInt(code[2]);
+    let arr = [(hun+ten)%10, (ten+bit)%10, (bit+hun)%10].sort((a, b) => a - b);
+    let passCount = 0;
+    for (let index = 2; index >= 0; index--) {
+        let match = calcItem.checks[index].findIndex(item => item === arr[index]);
+        if (match > -1) {
+            passCount++;
+        }
+    }
+    let condNum = calcItem.conditionNum;
+    return passCount >= condNum;
+}
+
+function checkDzxlmc(code, calcItem) {
+    let hun = parseInt(code[0]);
+    let ten = parseInt(code[1]);
+    let bit = parseInt(code[2]);
+    let arr = [Math.abs(hun-ten), Math.abs(ten-bit), Math.abs(bit-hun)].sort((a, b) => a - b);
+    let passCount = 0;
+    for (let index = 2; index >= 0; index--) {
+        let match = calcItem.checks[index].findIndex(item => item === arr[index]);
+        if (match > -1) {
+            passCount++;
+        }
+    }
+    let condNum = calcItem.conditionNum;
+    return passCount >= condNum;
+}
+
 function checkCode(code, calcItem) {
     let label = calcItem.label;
     // console.log("计算项", code, calcItem)
@@ -676,6 +724,12 @@ function checkCode(code, calcItem) {
     }
     if (label === "dz") {
         return checkDz(code, calcItem);
+    } else if (label === "dzxs") {
+        return checkDzxs(code, calcItem);
+    } else if (label === "dzxlmh") {
+        return checkDzxlmh(code, calcItem);
+    } else if (label === "dzxlmc") {
+        return checkDzxlmc(code, calcItem);
     } else if (calcItem.ignore) {
         let checks = calcItem.checks;
         // 容错计算,容错忽略排序,规则作为整体计算反向

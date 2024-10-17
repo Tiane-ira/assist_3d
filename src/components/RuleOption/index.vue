@@ -1,9 +1,9 @@
 <script>
 import { getSeqArr } from "@/utils/code";
-import {all012l, allDzx, allHmxt, allJiOu, allJodw, allMCSM} from "@/config";
+import { all012l, allDzx, allHmxt, allJiOu, allJodw, allMCSM } from "@/config";
 import IgnoreErrorCheck from "@/components/IgnoreErrorCheck/index.vue";
 import OrderCheck from "@/components/OrderCheck/index.vue";
-import {mapState} from "vuex";
+import { mapState } from "vuex";
 
 export default {
   name: "RuleOption",
@@ -40,6 +40,18 @@ export default {
           { label: "", values: [] },
           { label: "", values: [] },
         ],
+      },
+      szsRule: {
+        show: false,
+        title: "",
+        label: "",
+        id: null,
+        checks: [
+          { label: "", values: [], checked: true },
+          { label: "", values: [], checked: true },
+          { label: "", values: [], checked: true },
+        ],
+        conditionNum: 0,
       },
     };
   },
@@ -158,9 +170,30 @@ export default {
         this.dzRule.checks[0].label = "断组1";
         this.dzRule.checks[1].label = "断组2";
         this.dzRule.checks[2].label = "断组3";
+      } else if (label === "dzxs") {
+        this.szsRule.show = true;
+        this.szsRule.label = label;
+        this.szsRule.title = "大中小数";
+        this.szsRule.checks[0].label = "最大数";
+        this.szsRule.checks[1].label = "中间数";
+        this.szsRule.checks[2].label = "最小数";
+      } else if (label === "dzxlmh") {
+        this.szsRule.show = true;
+        this.szsRule.label = label;
+        this.szsRule.title = "大中小两码合";
+        this.szsRule.checks[0].label = "最大两码合";
+        this.szsRule.checks[1].label = "中间两码合";
+        this.szsRule.checks[2].label = "最小两码合";
+      } else if (label === "dzxlmc") {
+        this.szsRule.show = true;
+        this.szsRule.label = label;
+        this.szsRule.title = "大中小两码差";
+        this.szsRule.checks[0].label = "最大两码差";
+        this.szsRule.checks[1].label = "中间两码差";
+        this.szsRule.checks[2].label = "最小两码差";
       }
     },
-    reverseRule(type){
+    reverseRule(type) {
       if (type === "normal") {
         this.normalRule.checks = this.normalRule.valList.filter(item => this.normalRule.checks.indexOf(item) === -1)
       }
@@ -172,6 +205,8 @@ export default {
         Object.assign(this.$data.dmzRule, this.$options.data().dmzRule);
       } else if (type === "dz") {
         Object.assign(this.$data.dzRule, this.$options.data().dzRule);
+      } else if (type === "szs") {
+        Object.assign(this.$data.szsRule, this.$options.data().szsRule);
       }
     },
     saveNormalRule() {
@@ -268,6 +303,42 @@ export default {
       }
       Object.assign(this.$data.dzRule, this.$options.data().dzRule);
     },
+
+    saveSzsRule(){
+      let checkedCount = 0
+      for (const checkItem of this.szsRule.checks) {
+        if(checkItem.checked && checkItem.values.length === 0){
+          this.$message.warning(`${checkItem.label}条件已生效必须选值!`);
+          return
+        }
+        if(checkItem.checked){
+          checkedCount++
+        }
+      }
+      if(checkedCount < this.szsRule.conditionNum){
+        this.$message.warning(`${this.szsRule.title}满足条件个数大于生效条件个数，请检查!`);
+        return
+      }
+      if (this.szsRule.id) {
+        let rule = this.checkRules.find((item) => item.id === this.szsRule.id);
+        console.log(rule);
+        rule.checks = this.szsRule.checks
+        rule.conditionNum = this.szsRule.conditionNum
+      } else {
+        let rule = {
+          id: Date.now(),
+          title: this.szsRule.title,
+          label: this.szsRule.label,
+          type: "szs",
+          ignore: false,
+          isOrder: false,
+          checks: this.szsRule.checks,
+          conditionNum: this.szsRule.conditionNum,
+        };
+        this.checkRules.push(rule);
+      }
+      Object.assign(this.$data.szsRule, this.$options.data().szsRule);
+    },
     changeRule(index) {
       let checkRule = this.checkRules[index];
       if (checkRule.type === "normal") {
@@ -281,6 +352,11 @@ export default {
       } else if (checkRule.type === "dz") {
         this.dzRule.id = checkRule.id;
         this.dzRule.checks = structuredClone(checkRule.checks);
+        this.showRule(checkRule.label);
+      }else if (checkRule.type === "szs") {
+        this.szsRule.id = checkRule.id;
+        this.szsRule.checks = structuredClone(checkRule.checks);
+        this.szsRule.conditionNum = checkRule.conditionNum;
         this.showRule(checkRule.label);
       }
     },
@@ -299,149 +375,69 @@ export default {
   <div class="rule-option">
     <el-card>
       <div class="row">
-        <el-button
-          class="rule"
-          size="small"
-          type="success"
-          @click="showRule('hz2')"
-          >合值
+        <el-button class="rule" size="small" type="success" @click="showRule('hz2')">合值
         </el-button>
-        <el-button
-          class="rule"
-          size="small"
-          type="success"
-          @click="showRule('kd')"
-          >跨度
+        <el-button class="rule" size="small" type="success" @click="showRule('kd')">跨度
         </el-button>
-        <el-button
-          class="rule"
-          size="small"
-          type="success"
-          @click="showRule('012l')"
-          >012路
+        <el-button class="rule" size="small" type="success" @click="showRule('012l')">012路
         </el-button>
-        <el-button
-          class="rule"
-          size="small"
-          type="success"
-          @click="showRule('dzx')"
-          >大中小
+        <el-button class="rule" size="small" type="success" @click="showRule('dzx')">大中小
         </el-button>
-        <el-button
-          class="rule"
-          size="small"
-          type="success"
-          @click="showRule('rylmc')"
-          >任意两码差
+        <el-button class="rule" size="small" type="success" @click="showRule('rylmc')">任意两码差
         </el-button>
       </div>
       <div class="row">
-        <el-button
-          class="rule"
-          size="small"
-          type="success"
-          @click="showRule('lmh')"
-          >两码合
+        <el-button class="rule" size="small" type="success" @click="showRule('lmh')">两码合
         </el-button>
-        <el-button
-          class="rule"
-          size="small"
-          type="success"
-          @click="showRule('zxlmh')"
-          >最小两码合
+        <el-button class="rule" size="small" type="success" @click="showRule('zxlmh')">最小两码合
         </el-button>
-        <el-button
-          class="rule"
-          size="small"
-          type="success"
-          @click="showRule('zjlmh')"
-          >中间两码合
+        <el-button class="rule" size="small" type="success" @click="showRule('zjlmh')">中间两码合
         </el-button>
-        <el-button
-          class="rule"
-          size="small"
-          type="success"
-          @click="showRule('zdlmh')"
-          >最大两码合
+        <el-button class="rule" size="small" type="success" @click="showRule('zdlmh')">最大两码合
         </el-button>
       </div>
       <div class="row">
-        <el-button
-          class="rule"
-          size="small"
-          type="success"
-          @click="showRule('mcsm')"
-          >码差三码
+        <el-button class="rule" size="small" type="success" @click="showRule('mcsm')">码差三码
         </el-button>
-        <el-button
-          class="rule"
-          size="small"
-          type="success"
-          @click="showRule('zdz')"
-          >最大值
+        <el-button class="rule" size="small" type="success" @click="showRule('zdz')">最大值
         </el-button>
-        <el-button
-          class="rule"
-          size="small"
-          type="success"
-          @click="showRule('dmz')"
-          >胆码组
+        <el-button class="rule" size="small" type="success" @click="showRule('hz')">和值
         </el-button>
-        <el-button
-          class="rule"
-          size="small"
-          type="success"
-          @click="showRule('hz')"
-          >和值
-        </el-button>
-        <el-button
-          class="rule"
-          size="small"
-          type="success"
-          @click="showRule('jo')"
-          >奇偶
-        </el-button>
-        <el-button
-          class="rule"
-          size="small"
-          type="success"
-          @click="showRule('dz')"
-          >断组
+        <el-button class="rule" size="small" type="success" @click="showRule('jo')">奇偶
         </el-button>
       </div>
+
+      <!-- 号码形态，直选才有 -->
       <div class="row" v-if="activeTab === 'direct'">
-        <el-button
-            class="rule"
-            size="small"
-            type="success"
-            @click="showRule('hmxt')"
-        >号码形态
+        <el-button class="rule" size="small" type="success" @click="showRule('hmxt')">号码形态
         </el-button>
-        <el-button
-            class="rule"
-            size="small"
-            type="success"
-            @click="showRule('jodw')"
-        >奇偶定位
+        <el-button class="rule" size="small" type="success" @click="showRule('jodw')">奇偶定位
+        </el-button>
+      </div>
+
+      <!-- 不支持排序 -->
+      <div class="row">
+        <el-button class="rule" size="small" type="warning" @click="showRule('dmz')">胆码组
+        </el-button>
+        <el-button class="rule" size="small" type="warning" @click="showRule('dz')">断组
+        </el-button>
+        <el-button class="rule" size="small" type="warning" @click="showRule('dzxs')">大中小数
+        </el-button>
+        <el-button class="rule" size="small" type="warning" @click="showRule('dzxlmh')">大中小两码和
+        </el-button>
+        <el-button class="rule" size="small" type="warning" @click="showRule('dzxlmc')">大中小两码差
         </el-button>
       </div>
     </el-card>
-    <el-dialog
-      :title="normalRule.title"
-      :visible.sync="normalRule.show"
-      center
-      width="80%"
-    >
+
+    <!-- 普通单选条件类型 -->
+    <el-dialog :title="normalRule.title" :visible.sync="normalRule.show" center width="80%">
       <div class="rule-form">
         <div v-if="normalRule.ruleTip" style="padding-bottom: 5px">
           <span>{{ normalRule.ruleTip }}:</span>
         </div>
         <el-checkbox-group v-model="normalRule.checks" size="mini">
-          <el-checkbox-button
-            v-for="(item, index) in normalRule.valList"
-            :key="index"
-            :label="item"
-          >
+          <el-checkbox-button v-for="(item, index) in normalRule.valList" :key="index" :label="item">
             {{ item }}
           </el-checkbox-button>
         </el-checkbox-group>
@@ -452,30 +448,21 @@ export default {
         <el-button type="primary" @click="saveNormalRule">确 定</el-button>
       </span>
     </el-dialog>
-    <el-dialog
-      :title="dmzRule.title"
-      :visible.sync="dmzRule.show"
-      center
-      width="90%"
-    >
+    <!-- 胆码组条件类型 -->
+    <el-dialog :title="dmzRule.title" :visible.sync="dmzRule.show" center width="90%">
       <div class="rule-form">
-        <div
-          v-for="(rule, index) in dmzRule.checks"
-          :key="index"
-          class="item-rule"
-        >
+        <div v-for="(rule, index) in dmzRule.checks" :key="index" class="item-rule">
           <div class="title">
             <span>{{ rule.label }}:</span>
           </div>
-          <el-checkbox-group v-model="rule.values" size="mini">
+          <el-checkbox-group v-model="rule.values" size="mini" class="irc-group">
             <el-checkbox-button v-for="num in 10" :key="num" :label="num - 1">
               {{ num - 1 }}
             </el-checkbox-button>
           </el-checkbox-group>
           <div class="title"><span>出现:</span></div>
           <el-checkbox-group v-model="rule.counts" size="mini">
-            <el-checkbox v-for="count in 4" :key="count - 1" :label="count - 1"
-              >{{ count - 1 }}个
+            <el-checkbox v-for="count in 4" :key="count - 1" :label="count - 1">{{ count - 1 }}个
             </el-checkbox>
           </el-checkbox-group>
         </div>
@@ -485,18 +472,10 @@ export default {
         <el-button type="primary" @click="saveDmzRule">确 定</el-button>
       </span>
     </el-dialog>
-    <el-dialog
-      :title="dzRule.title"
-      :visible.sync="dzRule.show"
-      center
-      width="90%"
-    >
+    <!-- 断组条件类型 -->
+    <el-dialog :title="dzRule.title" :visible.sync="dzRule.show" center width="90%">
       <div class="rule-form">
-        <div
-          v-for="(rule, index) in dzRule.checks"
-          :key="index"
-          class="item-rule"
-        >
+        <div v-for="(rule, index) in dzRule.checks" :key="index" class="item-rule">
           <div class="title">
             <span>{{ rule.label }}:</span>
           </div>
@@ -512,37 +491,53 @@ export default {
         <el-button type="primary" @click="saveDzRule">确 定</el-button>
       </span>
     </el-dialog>
+
+    <!-- 三组数条件类型 -->
+    <el-dialog :title="szsRule.title" :visible.sync="szsRule.show" center width="90%">
+      <div class="rule-form">
+        <div v-for="(rule, index) in szsRule.checks" :key="index" class="item-rule">
+          <div class="title">
+            <span>{{ rule.label }}:</span>
+          </div>
+          <el-checkbox-group v-model="rule.values" size="mini" class="irc-group">
+            <el-checkbox-button v-for="num in 10" :key="num" :label="num - 1">
+              {{ num - 1 }}
+            </el-checkbox-button>
+          </el-checkbox-group>
+          <el-checkbox v-model="rule.checked">生效</el-checkbox>
+        </div>
+        <div class="rule-foot">
+          <span class="rule-foot-title">满足:</span>
+          <el-radio-group v-model="szsRule.conditionNum">
+            <el-radio :label="1">1个</el-radio>
+            <el-radio :label="2">2个</el-radio>
+            <el-radio :label="3">3个</el-radio>
+          </el-radio-group>
+        </div>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="cancelRule('szs')">取 消</el-button>
+        <el-button type="primary" @click="saveSzsRule">确 定</el-button>
+      </span>
+    </el-dialog>
     <el-card style="margin-top: 5px">
       <div class="rule-list">
         <span v-if="!checkRules.length">暂无条件</span>
-        <div
-          v-for="(item, index) in checkRules"
-          :key="item.id"
-          class="rule-item"
-        >
+        <div v-for="(item, index) in checkRules" :key="item.id" class="rule-item">
           <div class="title">
             <div class="name">
               <span>【{{ index + 1 }}】{{ item.title }}</span>
             </div>
             <div class="operator">
-              <el-checkbox
-                v-if="item.label !== 'dmz' && item.label !== 'dz'"
-                v-model="item.isOrder"
-                style="margin-right: 10px"
-                >排序
+              <el-checkbox v-if="item.label == 'normal'" v-model="item.isOrder"
+                style="margin-right: 10px">排序
               </el-checkbox>
-              <el-checkbox
-                v-if="item.label !== 'dmz' && item.label !== 'dz'"
-                v-model="item.ignore"
-                style="margin-right: 10px"
-                @change="changeIg"
-                >容错
+              <el-checkbox v-if="item.label == 'normal'" v-model="item.ignore"
+                style="margin-right: 10px" @change="changeIg">容错
               </el-checkbox>
-              <el-button size="mini" type="warning" @click="changeRule(index)"
-                >修改
+              <el-button size="mini" type="warning" @click="changeRule(index)">修改
               </el-button>
-              <el-button size="mini" type="danger" @click="delRule(index)"
-                >移除
+              <el-button size="mini" type="danger" @click="delRule(index)">移除
               </el-button>
             </div>
           </div>
@@ -562,6 +557,14 @@ export default {
               <span style="margin-right: 5px">{{ child.label }}:</span>
               <span style="margin-right: 10px">{{ child.values }}</span>
             </div>
+          </div>
+          <div v-else-if="item.type === 'szs'">
+            <div v-for="(child, index) in item.checks" :key="index">
+              <span style="margin-right: 5px">{{ child.label }}:</span>
+              <span style="margin-right: 10px">{{ child.values }}</span>
+              <span style="margin-right: 5px">是否有效: {{ child.checked?'是':'否' }}</span>
+            </div>
+            <span>满足：{{ item.conditionNum }}个</span>
           </div>
         </div>
       </div>
@@ -590,8 +593,26 @@ export default {
     justify-content: space-between;
   }
 }
-
 .rule-item:last-child {
   margin-bottom: 0;
+}
+
+.item-rule{
+  display: flex;
+  justify-content: left;
+  line-height: 28px;
+  margin-bottom: 10px;
+  .title {
+    font-size: 20;
+    font-weight: bold;
+    margin-right: 10px;
+  }
+}
+.irc-group{
+  margin-right: 10px;
+}
+
+.rule-foot-title{
+  margin-right: 10px;
 }
 </style>

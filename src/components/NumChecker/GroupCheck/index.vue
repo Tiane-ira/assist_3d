@@ -1,5 +1,5 @@
 <script>
-import { allNum, allType } from "@/config";
+import { allNum } from "@/config";
 
 export default {
   name: "GroupCheck",

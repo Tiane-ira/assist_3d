@@ -1,8 +1,8 @@
 "use strict";
 
-import {app, protocol, BrowserWindow, ipcMain, clipboard} from "electron";
-import {createProtocol} from "vue-cli-plugin-electron-builder/lib";
-import installExtension, {VUEJS_DEVTOOLS} from "electron-devtools-installer";
+import { app, protocol, BrowserWindow, ipcMain, clipboard } from "electron";
+import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
+import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 const path = require("path");
@@ -14,7 +14,7 @@ const store = new Store();
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
-    {scheme: "app", privileges: {secure: true, standard: true}},
+    { scheme: "app", privileges: { secure: true, standard: true } },
 ]);
 
 async function createWindow() {
@@ -179,7 +179,7 @@ function getCalcGroups2(ruleList, igIndexArr) {
             ruleGroup.push(rule);
         } else {
             for (let ruleValue of rule.checks) {
-                ruleGroup.push({label: rule.label, ruleValue, isOrder: true});
+                ruleGroup.push({ label: rule.label, ruleValue, isOrder: true });
             }
         }
         ruleGroups.push(ruleGroup);
@@ -328,7 +328,7 @@ function getCalcGroups(ruleList, igIndexArr) {
             ruleGroup.push(newRule);
         } else {
             for (let ruleValue of rule.checks) {
-                ruleGroup.push({label: rule.label, ruleValue, isOrder: true});
+                ruleGroup.push({ label: rule.label, ruleValue, isOrder: true });
             }
         }
         ruleGroups.push(ruleGroup);
@@ -605,7 +605,7 @@ function getHmxtLabel(hun, ten, bit) {
         hmxt = "上升形"
     } else if (hun > ten && ten > bit) {
         hmxt = "下降形"
-    }  else if (hun === ten || ten === bit || hun === bit) {
+    } else if (hun === ten || ten === bit || hun === bit) {
         hmxt = "组三"
     } else if (hun < ten && ten > bit) {
         hmxt = "凸起形"
@@ -672,11 +672,11 @@ function checkDzxs(code, calcItem) {
     let hun = parseInt(code[0]);
     let ten = parseInt(code[1]);
     let bit = parseInt(code[2]);
-    let arr = [hun, ten, bit].sort((a, b) => a - b);
+    let arr = [hun, ten, bit].sort((a, b) => b - a);
     let passCount = 0;
     for (let index = 2; index >= 0; index--) {
-        let match = calcItem.checks[index].findIndex(item => item === arr[index]);
-        if (match > -1) {
+        let match = calcItem.checks[index].values.includes(arr[index]);
+        if (match && calcItem.checks[index].checked) {
             passCount++;
         }
     }
@@ -688,10 +688,10 @@ function checkDzxlmh(code, calcItem) {
     let hun = parseInt(code[0]);
     let ten = parseInt(code[1]);
     let bit = parseInt(code[2]);
-    let arr = [(hun+ten)%10, (ten+bit)%10, (bit+hun)%10].sort((a, b) => a - b);
+    let arr = [(hun + ten) % 10, (ten + bit) % 10, (bit + hun) % 10].sort((a, b) => a - b);
     let passCount = 0;
     for (let index = 2; index >= 0; index--) {
-        let match = calcItem.checks[index].findIndex(item => item === arr[index]);
+        let match = calcItem.checks[index].values.findIndex(item => item === arr[index]);
         if (match > -1) {
             passCount++;
         }
@@ -704,10 +704,10 @@ function checkDzxlmc(code, calcItem) {
     let hun = parseInt(code[0]);
     let ten = parseInt(code[1]);
     let bit = parseInt(code[2]);
-    let arr = [Math.abs(hun-ten), Math.abs(ten-bit), Math.abs(bit-hun)].sort((a, b) => a - b);
+    let arr = [Math.abs(hun - ten), Math.abs(ten - bit), Math.abs(bit - hun)].sort((a, b) => a - b);
     let passCount = 0;
     for (let index = 2; index >= 0; index--) {
-        let match = calcItem.checks[index].findIndex(item => item === arr[index]);
+        let match = calcItem.checks[index].values.findIndex(item => item === arr[index]);
         if (match > -1) {
             passCount++;
         }

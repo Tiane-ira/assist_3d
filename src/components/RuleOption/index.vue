@@ -51,7 +51,7 @@ export default {
           { label: "", values: [], checked: true },
           { label: "", values: [], checked: true },
         ],
-        conditionNum: 0,
+        conditionNum: 1,
       },
     };
   },
@@ -304,6 +304,12 @@ export default {
       Object.assign(this.$data.dzRule, this.$options.data().dzRule);
     },
 
+    szsChange(checked,index){
+      if(!checked){
+        this.szsRule.checks[index].values = []
+      }
+    },
+
     saveSzsRule(){
       let checkedCount = 0
       for (const checkItem of this.szsRule.checks) {
@@ -499,12 +505,12 @@ export default {
           <div class="title">
             <span>{{ rule.label }}:</span>
           </div>
-          <el-checkbox-group v-model="rule.values" size="mini" class="irc-group">
+          <el-checkbox-group :disabled="!rule.checked" v-model="rule.values" size="mini" class="irc-group">
             <el-checkbox-button v-for="num in 10" :key="num" :label="num - 1">
               {{ num - 1 }}
             </el-checkbox-button>
           </el-checkbox-group>
-          <el-checkbox v-model="rule.checked">生效</el-checkbox>
+          <el-checkbox v-model="rule.checked" @change="szsChange(rule.checked,index)">生效</el-checkbox>
         </div>
         <div class="rule-foot">
           <span class="rule-foot-title">满足:</span>

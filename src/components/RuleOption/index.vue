@@ -1,6 +1,6 @@
 <script>
 import { getSeqArr } from "@/utils/code";
-import { all012l, allDzx, allHmxt, allJiOu, allJodw, allMCSM, allNum } from "@/config";
+import { all012l, allDzx, allHmxt, allJiOu, allJodw, allMCSM } from "@/config";
 import IgnoreErrorCheck from "@/components/IgnoreErrorCheck/index.vue";
 import OrderCheck from "@/components/OrderCheck/index.vue";
 import { mapState } from "vuex";
@@ -483,7 +483,12 @@ export default {
           <div class="title">
             <span>{{ rule.label }}:</span>
           </div>
-          <el-checkbox-group v-model="rule.values" size="mini" class="irc-group">
+          <el-checkbox-group v-if="szsRule.label === 'dzxlmc' && index === 2" v-model="rule.values" size="mini" class="irc-group">
+            <el-checkbox-button v-for="num in 5" :key="num" :label="num - 1">
+              {{ num - 1 }}
+            </el-checkbox-button>
+          </el-checkbox-group>
+          <el-checkbox-group v-else v-model="rule.values" size="mini" class="irc-group">
             <el-checkbox-button v-for="num in 10" :key="num" :label="num - 1">
               {{ num - 1 }}
             </el-checkbox-button>

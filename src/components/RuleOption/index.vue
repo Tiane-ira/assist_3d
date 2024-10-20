@@ -1,6 +1,6 @@
 <script>
 import { getSeqArr } from "@/utils/code";
-import { all012l, allDzx, allHmxt, allJiOu, allJodw, allMCSM } from "@/config";
+import { all012l, allDzx, allHmxt, allJiOu, allJodw, allMCSM, allNum } from "@/config";
 import IgnoreErrorCheck from "@/components/IgnoreErrorCheck/index.vue";
 import OrderCheck from "@/components/OrderCheck/index.vue";
 import { mapState } from "vuex";
@@ -47,11 +47,11 @@ export default {
         label: "",
         id: null,
         checks: [
-          { label: "", values: [], checked: true },
-          { label: "", values: [], checked: true },
-          { label: "", values: [], checked: true },
+          { label: "", values: [] },
+          { label: "", values: []},
+          { label: "", values: []},
         ],
-        conditionNum: 1,
+        conditionNum: 3,
       },
     };
   },
@@ -303,31 +303,9 @@ export default {
       }
       Object.assign(this.$data.dzRule, this.$options.data().dzRule);
     },
-
-    szsChange(checked,index){
-      if(!checked){
-        this.szsRule.checks[index].values = []
-      }
-    },
-
     saveSzsRule(){
-      let checkedCount = 0
-      for (const checkItem of this.szsRule.checks) {
-        if(checkItem.checked && checkItem.values.length === 0){
-          this.$message.warning(`${checkItem.label}条件已生效必须选值!`);
-          return
-        }
-        if(checkItem.checked){
-          checkedCount++
-        }
-      }
-      if(checkedCount < this.szsRule.conditionNum){
-        this.$message.warning(`${this.szsRule.title}满足条件个数大于生效条件个数，请检查!`);
-        return
-      }
       if (this.szsRule.id) {
         let rule = this.checkRules.find((item) => item.id === this.szsRule.id);
-        console.log(rule);
         rule.checks = this.szsRule.checks
         rule.conditionNum = this.szsRule.conditionNum
       } else {
@@ -421,7 +399,7 @@ export default {
         </el-button>
       </div>
 
-      <!-- 不支持排序 -->
+      <!-- 不支持排序和容错 -->
       <div class="row">
         <el-button class="rule" size="small" type="warning" @click="showRule('dmz')">胆码组
         </el-button>
@@ -505,16 +483,16 @@ export default {
           <div class="title">
             <span>{{ rule.label }}:</span>
           </div>
-          <el-checkbox-group :disabled="!rule.checked" v-model="rule.values" size="mini" class="irc-group">
+          <el-checkbox-group v-model="rule.values" size="mini" class="irc-group">
             <el-checkbox-button v-for="num in 10" :key="num" :label="num - 1">
               {{ num - 1 }}
             </el-checkbox-button>
           </el-checkbox-group>
-          <el-checkbox v-model="rule.checked" @change="szsChange(rule.checked,index)">生效</el-checkbox>
         </div>
         <div class="rule-foot">
           <span class="rule-foot-title">满足:</span>
           <el-radio-group v-model="szsRule.conditionNum">
+            <el-radio :label="0">0个</el-radio>
             <el-radio :label="1">1个</el-radio>
             <el-radio :label="2">2个</el-radio>
             <el-radio :label="3">3个</el-radio>
@@ -535,10 +513,11 @@ export default {
               <span>【{{ index + 1 }}】{{ item.title }}</span>
             </div>
             <div class="operator">
-              <el-checkbox v-if="item.label == 'normal'" v-model="item.isOrder"
+              <!-- 普通类型条件才有排序和容错 -->
+              <el-checkbox v-if="item.type == 'normal'" v-model="item.isOrder"
                 style="margin-right: 10px">排序
               </el-checkbox>
-              <el-checkbox v-if="item.label == 'normal'" v-model="item.ignore"
+              <el-checkbox v-model="item.ignore" v-if="item.type == 'normal'"
                 style="margin-right: 10px" @change="changeIg">容错
               </el-checkbox>
               <el-button size="mini" type="warning" @click="changeRule(index)">修改
@@ -568,7 +547,6 @@ export default {
             <div v-for="(child, index) in item.checks" :key="index">
               <span style="margin-right: 5px">{{ child.label }}:</span>
               <span style="margin-right: 10px">{{ child.values }}</span>
-              <span style="margin-right: 5px">是否有效: {{ child.checked?'是':'否' }}</span>
             </div>
             <span>满足：{{ item.conditionNum }}个</span>
           </div>

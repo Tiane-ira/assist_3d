@@ -429,9 +429,9 @@ function doFilter(codeList, calcGroup) {
     for (let code of codeList) {
         let count = calcGroup.length;
         for (const calcItem of calcGroup) {
-            if (debug) {
-                console.log(code, calcItem);
-            }
+            // if (debug) {
+            //     console.log(code, calcItem);
+            // }
             let ok = checkCode(code, calcItem);
             if (ok) count--;
         }
@@ -674,46 +674,46 @@ function checkDzxs(code, calcItem) {
     let bit = parseInt(code[2]);
     let arr = [hun, ten, bit].sort((a, b) => b - a);
     let passCount = 0;
-    for (let index = 2; index >= 0; index--) {
+    for (let index = 0; index <= 2; index++) {
         let match = calcItem.checks[index].values.includes(arr[index]);
-        if (match && calcItem.checks[index].checked) {
+        if (match) {
             passCount++;
         }
     }
     let condNum = calcItem.conditionNum;
-    return passCount >= condNum;
+    return passCount === condNum;
 }
 
 function checkDzxlmh(code, calcItem) {
     let hun = parseInt(code[0]);
     let ten = parseInt(code[1]);
     let bit = parseInt(code[2]);
-    let arr = [(hun + ten) % 10, (ten + bit) % 10, (bit + hun) % 10].sort((a, b) => a - b);
+    let arr = [(hun + ten) % 10, (ten + bit) % 10, (bit + hun) % 10].sort((a, b) => b - a);
     let passCount = 0;
-    for (let index = 2; index >= 0; index--) {
-        let match = calcItem.checks[index].values.findIndex(item => item === arr[index]);
-        if (match > -1) {
+    for (let index = 0; index <= 2; index++) {
+        let match = calcItem.checks[index].values.includes(arr[index]);
+        if (match) {
             passCount++;
         }
     }
     let condNum = calcItem.conditionNum;
-    return passCount >= condNum;
+    return passCount === condNum;
 }
 
 function checkDzxlmc(code, calcItem) {
     let hun = parseInt(code[0]);
     let ten = parseInt(code[1]);
     let bit = parseInt(code[2]);
-    let arr = [Math.abs(hun - ten), Math.abs(ten - bit), Math.abs(bit - hun)].sort((a, b) => a - b);
+    let arr = [Math.abs(hun - ten), Math.abs(ten - bit), Math.abs(bit - hun)].sort((a, b) => b - a);
     let passCount = 0;
-    for (let index = 2; index >= 0; index--) {
-        let match = calcItem.checks[index].values.findIndex(item => item === arr[index]);
-        if (match > -1) {
+    for (let index = 0; index <= 2; index++) {
+        let match = calcItem.checks[index].values.includes(arr[index]);
+        if (match) {
             passCount++;
         }
     }
     let condNum = calcItem.conditionNum;
-    return passCount >= condNum;
+    return passCount === condNum;
 }
 
 function checkCode(code, calcItem) {

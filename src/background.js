@@ -680,8 +680,7 @@ function checkDzxs(code, calcItem) {
             passCount++;
         }
     }
-    let condNum = calcItem.conditionNum;
-    return passCount === condNum;
+    return calcItem.conditionNums.includes(passCount + '');
 }
 
 function checkDzxlmh(code, calcItem) {
@@ -696,8 +695,7 @@ function checkDzxlmh(code, calcItem) {
             passCount++;
         }
     }
-    let condNum = calcItem.conditionNum;
-    return passCount === condNum;
+    return calcItem.conditionNums.includes(passCount + '');
 }
 
 function checkDzxlmc(code, calcItem) {
@@ -712,8 +710,7 @@ function checkDzxlmc(code, calcItem) {
             passCount++;
         }
     }
-    let condNum = calcItem.conditionNum;
-    return passCount === condNum;
+    return calcItem.conditionNums.includes(passCount + '');
 }
 
 function checkCode(code, calcItem) {

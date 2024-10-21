@@ -48,10 +48,10 @@ export default {
         id: null,
         checks: [
           { label: "", values: [] },
-          { label: "", values: []},
-          { label: "", values: []},
+          { label: "", values: [] },
+          { label: "", values: [] },
         ],
-        conditionNum: 3,
+        conditionNums: ['3'],
       },
     };
   },
@@ -303,11 +303,25 @@ export default {
       }
       Object.assign(this.$data.dzRule, this.$options.data().dzRule);
     },
-    saveSzsRule(){
+    szsRuleAll(index, label) {
+      this.szsRule.checks[index].values.splice(0, this.szsRule.checks[index].values.length, ...this.getSzsAll(index, label))
+    },
+    szsRuleReverse(index, label) {
+      let all = this.getSzsAll(index, label)
+      let reverseArr = all.filter(num =>  this.szsRule.checks[index].values.indexOf(num) === -1)
+      this.szsRule.checks[index].values.splice(0, this.szsRule.checks[index].values.length, ...reverseArr)
+    },
+    getSzsAll(index, label) {
+      if (label === "dzxlmc" && index === 2) {
+        return [0, 1, 2, 3, 4]
+      }
+      return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    },
+    saveSzsRule() {
       if (this.szsRule.id) {
         let rule = this.checkRules.find((item) => item.id === this.szsRule.id);
         rule.checks = this.szsRule.checks
-        rule.conditionNum = this.szsRule.conditionNum
+        rule.conditionNums = this.szsRule.conditionNums
       } else {
         let rule = {
           id: Date.now(),
@@ -317,7 +331,7 @@ export default {
           ignore: false,
           isOrder: false,
           checks: this.szsRule.checks,
-          conditionNum: this.szsRule.conditionNum,
+          conditionNums: this.szsRule.conditionNums,
         };
         this.checkRules.push(rule);
       }
@@ -337,10 +351,10 @@ export default {
         this.dzRule.id = checkRule.id;
         this.dzRule.checks = structuredClone(checkRule.checks);
         this.showRule(checkRule.label);
-      }else if (checkRule.type === "szs") {
+      } else if (checkRule.type === "szs") {
         this.szsRule.id = checkRule.id;
         this.szsRule.checks = structuredClone(checkRule.checks);
-        this.szsRule.conditionNum = checkRule.conditionNum;
+        this.szsRule.conditionNums = checkRule.conditionNums;
         this.showRule(checkRule.label);
       }
     },
@@ -483,7 +497,8 @@ export default {
           <div class="title">
             <span>{{ rule.label }}:</span>
           </div>
-          <el-checkbox-group v-if="szsRule.label === 'dzxlmc' && index === 2" v-model="rule.values" size="mini" class="irc-group">
+          <el-checkbox-group v-if="szsRule.label === 'dzxlmc' && index === 2" v-model="rule.values" size="mini"
+            class="irc-group">
             <el-checkbox-button v-for="num in 5" :key="num" :label="num - 1">
               {{ num - 1 }}
             </el-checkbox-button>
@@ -493,15 +508,17 @@ export default {
               {{ num - 1 }}
             </el-checkbox-button>
           </el-checkbox-group>
+          <el-button type="danger" size="mini" @click="szsRuleAll(index, szsRule.label)">全选</el-button>
+          <el-button type="danger" size="mini" @click="szsRuleReverse(index, szsRule.label)">反选</el-button>
         </div>
         <div class="rule-foot">
           <span class="rule-foot-title">满足:</span>
-          <el-radio-group v-model="szsRule.conditionNum">
-            <el-radio :label="0">0个</el-radio>
-            <el-radio :label="1">1个</el-radio>
-            <el-radio :label="2">2个</el-radio>
-            <el-radio :label="3">3个</el-radio>
-          </el-radio-group>
+          <el-checkbox-group v-model="szsRule.conditionNums">
+            <el-checkbox label="0">0个</el-checkbox>
+            <el-checkbox label="1">1个</el-checkbox>
+            <el-checkbox label="2">2个</el-checkbox>
+            <el-checkbox label="3">3个</el-checkbox>
+          </el-checkbox-group>
         </div>
       </div>
       <span slot="footer" class="dialog-footer">
@@ -519,11 +536,10 @@ export default {
             </div>
             <div class="operator">
               <!-- 普通类型条件才有排序和容错 -->
-              <el-checkbox v-if="item.type == 'normal'" v-model="item.isOrder"
-                style="margin-right: 10px">排序
+              <el-checkbox v-if="item.type == 'normal'" v-model="item.isOrder" style="margin-right: 10px">排序
               </el-checkbox>
-              <el-checkbox v-model="item.ignore" v-if="item.type == 'normal'"
-                style="margin-right: 10px" @change="changeIg">容错
+              <el-checkbox v-model="item.ignore" v-if="item.type == 'normal'" style="margin-right: 10px"
+                @change="changeIg">容错
               </el-checkbox>
               <el-button size="mini" type="warning" @click="changeRule(index)">修改
               </el-button>
@@ -553,7 +569,7 @@ export default {
               <span style="margin-right: 5px">{{ child.label }}:</span>
               <span style="margin-right: 10px">{{ child.values }}</span>
             </div>
-            <span>满足：{{ item.conditionNum }}个</span>
+            <span>满足：{{ item.conditionNums }}个</span>
           </div>
         </div>
       </div>
@@ -582,26 +598,29 @@ export default {
     justify-content: space-between;
   }
 }
+
 .rule-item:last-child {
   margin-bottom: 0;
 }
 
-.item-rule{
+.item-rule {
   display: flex;
   justify-content: left;
   line-height: 28px;
   margin-bottom: 10px;
+
   .title {
     font-size: 20;
     font-weight: bold;
     margin-right: 10px;
   }
 }
-.irc-group{
+
+.irc-group {
   margin-right: 10px;
 }
 
-.rule-foot-title{
+.rule-foot-title {
   margin-right: 10px;
 }
 </style>

@@ -1,4 +1,4 @@
-const {defineConfig} = require('@vue/cli-service')
+const { defineConfig } = require('@vue/cli-service')
 module.exports = defineConfig({
     transpileDependencies: true,
     lintOnSave: false,
@@ -53,7 +53,7 @@ module.exports = defineConfig({
                 dmg: {
                     icon: "build/icons/icon.icns",
                 }
-            },
+            }
         }
     }
 })

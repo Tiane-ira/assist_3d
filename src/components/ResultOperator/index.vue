@@ -114,13 +114,21 @@ export default {
       this.saveConfigShow = false;
       this.$message.success("保存条件成功");
     },
-    copyTransResult(){
+    copyTransResult() {
       if (this.resultList.length === 0) {
         this.$message.error("结果为空无法复制");
         return;
       }
       window.electron.copy2Clipboard(this.transCodes.join(" "));
       this.$message.success(`已复制组转直的${this.transCodes.length}个结果`);
+    },
+    openConvertTool() {
+      const param = {
+        url: '/convert',
+        width: 800,
+        height: 800
+      }
+      window.electron.openWindow(param);
     }
   },
 };
@@ -128,59 +136,33 @@ export default {
 
 <template>
   <div class="res-op">
-    <el-button :loading="loading" type="primary" @click="getResult"
-      >获取结果
+    <el-button :loading="loading" type="primary" @click="getResult">获取结果
     </el-button>
-    <el-button :disabled="!resultList.length" type="warning" @click="copyResult"
-      >复制结果
+    <el-button :disabled="!resultList.length" type="warning" @click="copyResult">复制结果
     </el-button>
-    <el-button
-      :disabled="!checkRules.length"
-      type="primary"
-      @click="showSaveRule"
-      >保存条件
+    <el-button :disabled="!checkRules.length" type="primary" @click="showSaveRule">保存条件
     </el-button>
     <el-button type="warning" @click="showRuleHis">条件历史</el-button>
-    <el-button v-if="activeTab==='group'" :disabled="!resultList.length" type="info" @click="copyTransResult">复制转直结果</el-button>
+    <el-button v-if="activeTab === 'group'" :disabled="!resultList.length" type="info"
+      @click="copyTransResult">复制转直结果</el-button>
+    <el-button :loading="loading" type="primary" @click="openConvertTool">转换工具
+    </el-button>
     <el-dialog :visible.sync="hisShow" center title="条件历史列表" width="60%">
-      <el-table
-        ref="hisTable"
-        :border="true"
-        :data="hisList"
-        :header-cell-style="{ 'text-align': 'center' }"
-      >
+      <el-table ref="hisTable" :border="true" :data="hisList" :header-cell-style="{ 'text-align': 'center' }">
         <el-table-column align="center" label="序号" type="index">
         </el-table-column>
         <el-table-column align="center" label="名称" prop="name">
         </el-table-column>
-        <el-table-column
-          align="center"
-          label="条件"
-          prop="label"
-          show-overflow-tooltip
-        >
+        <el-table-column align="center" label="条件" prop="label" show-overflow-tooltip>
         </el-table-column>
-        <el-table-column
-          align="center"
-          label="保存时间"
-          prop="createTime"
-          width="160"
-        >
+        <el-table-column align="center" label="保存时间" prop="createTime" width="160">
         </el-table-column>
         <el-table-column align="center" label="操作" width="200">
           <template v-slot="{ $index }">
-            <el-button
-              size="mini"
-              type="success"
-              @click.native.prevent="applyConfig($index)"
-            >
+            <el-button size="mini" type="success" @click.native.prevent="applyConfig($index)">
               使用
             </el-button>
-            <el-button
-              size="mini"
-              type="danger"
-              @click.native.prevent="delConfig($index)"
-            >
+            <el-button size="mini" type="danger" @click.native.prevent="delConfig($index)">
               删除
             </el-button>
           </template>
@@ -188,17 +170,9 @@ export default {
       </el-table>
     </el-dialog>
 
-    <el-dialog
-      :visible.sync="saveConfigShow"
-      center
-      title="保存条件"
-      width="60%"
-    >
+    <el-dialog :visible.sync="saveConfigShow" center title="保存条件" width="60%">
       <div>
-        <el-input
-          v-model="configName"
-          placeholder="输入条件集的名称"
-        ></el-input>
+        <el-input v-model="configName" placeholder="输入条件集的名称"></el-input>
       </div>
       <span slot="footer" class="dialog-footer">
         <el-button @click="saveConfigShow = false">取 消</el-button>

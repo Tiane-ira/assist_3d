@@ -421,7 +421,7 @@ export default {
         </el-button>
         <el-button class="rule" size="small" type="warning" @click="showRule('dzxs')">大中小数
         </el-button>
-        <el-button class="rule" size="small" type="warning" @click="showRule('dzxlmh')">大中小两码和
+        <el-button class="rule" size="small" type="warning" @click="showRule('dzxlmh')">大中小两码合
         </el-button>
         <el-button class="rule" size="small" type="warning" @click="showRule('dzxlmc')">大中小两码差
         </el-button>

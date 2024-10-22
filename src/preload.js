@@ -16,11 +16,16 @@ const filterCodes = (codeList, ruleList, igCounts, orderType) => {
     return ipcRenderer.invoke('filterCodes', codeList, ruleList, igCounts, orderType)
 }
 
+const openWindow = (param) => {
+    return ipcRenderer.invoke('openWindow', param)
+}
+
 contextBridge.exposeInMainWorld('electron', {
     platform: process.platform,
     setConfig,
     getConfig,
     copy2Clipboard,
-    filterCodes
+    filterCodes,
+    openWindow
 })
 

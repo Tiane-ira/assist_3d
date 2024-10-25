@@ -129,6 +129,14 @@ export default {
         height: 800
       }
       window.electron.openWindow(param);
+    },
+    openTableTool() {
+      const param = {
+        url: '/tableShow',
+        width: 800,
+        height: 800
+      }
+      window.electron.openWindow(param);
     }
   },
 };
@@ -145,8 +153,9 @@ export default {
     <el-button type="warning" @click="showRuleHis">条件历史</el-button>
     <el-button v-if="activeTab === 'group'" :disabled="!resultList.length" type="info"
       @click="copyTransResult">复制转直结果</el-button>
-    <el-button :loading="loading" type="primary" @click="openConvertTool">转换工具
+    <el-button type="primary" @click="openConvertTool">转换工具
     </el-button>
+    <el-button type="danger" @click="openTableTool">展示工具</el-button>
     <el-dialog :visible.sync="hisShow" center title="条件历史列表" width="60%">
       <el-table ref="hisTable" :border="true" :data="hisList" :header-cell-style="{ 'text-align': 'center' }">
         <el-table-column align="center" label="序号" type="index">

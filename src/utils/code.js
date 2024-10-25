@@ -295,3 +295,13 @@ export const group2Direct = (arr) => {
     arrange([], arr)
     return new Set(res)
 }
+
+export const validCodes = (codes) => {
+    for (const code of codes) {
+        // 正则表达式，匹配三位数字
+        const regex = /^\d{3}$/;
+        if (!regex.test(code)) {
+            return code;
+        }
+    }
+}

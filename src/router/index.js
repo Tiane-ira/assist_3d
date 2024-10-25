@@ -16,5 +16,9 @@ export default new VueRouter({
             path: '/convert',
             component: () => import('@/views/convert/index.vue'),
         },
+        {
+            path: '/tableShow',
+            component: () => import('@/views/tableShow/index.vue'),
+        },
     ]
 })

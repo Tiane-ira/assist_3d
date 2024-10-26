@@ -78,7 +78,11 @@ export default {
         return;
       }
       window.electron.copy2Clipboard(this.codesResult);
-      this.$message.success(`已复制${this.resultList.length}个结果`);
+      this.$message.success({
+        message: `已复制${this.resultList.length}个结果`,
+        duration: 1000
+      });
+
     },
     showSaveRule() {
       this.configName = "";

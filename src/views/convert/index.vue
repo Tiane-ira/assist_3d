@@ -73,9 +73,9 @@ export default {
             this.clearAll();
         },
         clearAll() {
-            this.directNums = "";
             this.groupNums = "";
             this.groupNums2 = "";
+            this.resultArr.splice(0, this.resultArr.length);
         },
         doCalc() {
             if (this.currentMode === "组转直") {
@@ -118,8 +118,11 @@ export default {
             this.resultArr.splice(0, this.resultArr.length, ...arr1);
         },
         copyResult() {
-            window.electron.copy2Clipboard(this.directNums);
-            this.$message.success("已复制结果");
+            window.electron.copy2Clipboard(this.resultNums);
+            this.$message.success({
+                message: "已复制结果",
+                duration: 1000
+            });
         },
         openTableTool() {
             const param = {

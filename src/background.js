@@ -1,6 +1,6 @@
 "use strict";
 
-import { app, protocol, BrowserWindow, ipcMain, clipboard } from "electron";
+import { app, protocol, BrowserWindow, ipcMain, clipboard, Menu } from "electron";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 
@@ -23,7 +23,6 @@ let mainWindow = null
 async function createWindow() {
     // Create the browser window.
     const win = new BrowserWindow({
-        title: "Assist 3D",
         minWidth: 1200,
         minHeight: 600,
         autoHideMenuBar: true,
@@ -44,6 +43,54 @@ async function createWindow() {
         createProtocol("app");
         // Load the index.html when not in development
         win.loadURL(winUrl);
+    }
+    // for mac copy paset shortcut
+    if (process.platform === 'darwin') {
+        app.setName("Assist 3D");
+        const template = [
+            // { role: 'appMenu' },
+            {
+                label: app.name,
+                submenu: [
+                    { role: 'about' },
+                    { type: 'separator' },
+                    { role: 'services' },
+                    { type: 'separator' },
+                    { role: 'hide' },
+                    { role: 'hideothers' },
+                    { role: 'unhide' },
+                    { type: 'separator' },
+                    { role: 'quit' },
+                ],
+            },
+            // { role: 'fileMenu' },
+            { role: 'editMenu' },
+            // { role: 'viewMenu' },
+            {
+                label: 'View',
+                submenu: [
+                    ...(
+                        (process.env.NODE_ENV === 'production') ? [] : [{ role: 'toggledevtools' }]
+                    ),
+                    { role: 'togglefullscreen' },
+                ],
+            },
+            // { role: 'windowMenu' },
+            {
+                role: 'window',
+                submenu: [
+                    { role: 'minimize' },
+                    { role: 'zoom' },
+                    { type: 'separator' },
+                    { role: 'front' },
+                    { type: 'separator' },
+                    // { role: 'window' }
+                ],
+            }
+        ];
+
+        let menu = Menu.buildFromTemplate(template);
+        Menu.setApplicationMenu(menu);
     }
 }
 
@@ -743,6 +790,45 @@ function checkDzxlmc(code, calcItem) {
     return calcItem.conditionNums.includes(passCount + '');
 }
 
+const fstjLabel = [['复', '隔', '中'], ['重', '斜', '跳'], ['邻', '孤', '传'], ['热', '温', '冷']]
+function checkFstj(code, calcItem) {
+    let hun = parseInt(code[0]);
+    let ten = parseInt(code[1]);
+    let bit = parseInt(code[2]);
+    let passCount = 0;
+    for (let index = 0; index <= 3; index++) {
+        let rule = calcItem.checks[index]
+        let label = ''
+        let match = false
+        for (const code of [hun, ten, bit]) {
+            let labelIndex = getFsIndex(code, rule.numArr)
+            if (labelIndex == -1) {
+                continue
+            }
+            label += fstjLabel[index][labelIndex]
+            match = rule.values.includes(label)
+        }
+        if (match) {
+            passCount++
+        }
+    }
+    return calcItem.conditionNums.includes(passCount + '');
+}
+
+function getFsIndex(code, numsArr) {
+    if (numsArr.nums1.includes(code)) {
+        return 0
+    }
+    if (numsArr.nums2.includes(code)) {
+        return 1
+    }
+    if (numsArr.nums3.includes(code)) {
+        return 2
+    }
+    return -1
+}
+
+
 function checkCode(code, calcItem) {
     let label = calcItem.label;
     // console.log("计算项", code, calcItem)
@@ -757,6 +843,8 @@ function checkCode(code, calcItem) {
         return checkDzxlmh(code, calcItem);
     } else if (label === "dzxlmc") {
         return checkDzxlmc(code, calcItem);
+    } else if (label === "fstj") {
+        return checkFstj(code, calcItem);
     } else if (calcItem.ignore) {
         let checks = calcItem.checks;
         // 容错计算,容错忽略排序,规则作为整体计算反向

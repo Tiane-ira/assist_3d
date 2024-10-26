@@ -53,6 +53,55 @@ export default {
         ],
         conditionNums: ['3'],
       },
+      fstjRule: {
+        show: false,
+        title: "",
+        label: "",
+        id: null,
+        checks: [
+          {
+            label: "",
+            valuesAll: ['复复复', '隔隔隔', '中中中', '复隔中', '复复隔', '复复中', '隔隔复', '隔隔中', '中中复', '中中隔'],
+            values: [],
+            numArr: {
+              nums1: [],
+              nums2: [],
+              nums3: [],
+            },
+          },
+          {
+            label: "",
+            valuesAll: ['重重重', '斜斜斜', '跳跳跳', '重斜跳', '重重斜', '重重跳', '斜斜重', '斜斜跳', '跳跳重', '跳跳斜'],
+            values: [],
+            numArr: {
+              nums1: [],
+              nums2: [],
+              nums3: [],
+            },
+          },
+          {
+            label: "",
+            valuesAll: ['邻邻邻', '孤孤孤', '传传传', '邻孤传', '邻邻孤', '邻邻传', '孤孤邻', '孤孤传', '传传邻', '传传孤'],
+            values: [],
+            numArr: {
+              nums1: [],
+              nums2: [],
+              nums3: [],
+            },
+          },
+          {
+            label: "",
+            valuesAll: ['热热热', '温温温', '冷冷冷', '热温冷', '热热温', '热热冷', '温温热', '温温冷', '冷冷热', '冷冷温'],
+            values: [],
+            numArr: {
+              nums1: [],
+              nums2: [],
+              nums3: [],
+            },
+          },
+        ],
+        conditionNums: ['4'],
+      },
     };
   },
   computed: {
@@ -191,6 +240,14 @@ export default {
         this.szsRule.checks[0].label = "最大两码差";
         this.szsRule.checks[1].label = "中间两码差";
         this.szsRule.checks[2].label = "最小两码差";
+      } else if (label === "fstj") {
+        this.fstjRule.show = true;
+        this.fstjRule.label = label;
+        this.fstjRule.title = "复式条件";
+        this.fstjRule.checks[0].label = "复隔中";
+        this.fstjRule.checks[1].label = "重斜跳";
+        this.fstjRule.checks[2].label = "邻孤传";
+        this.fstjRule.checks[3].label = "热温冷";
       }
     },
     reverseRule(type) {
@@ -207,6 +264,8 @@ export default {
         Object.assign(this.$data.dzRule, this.$options.data().dzRule);
       } else if (type === "szs") {
         Object.assign(this.$data.szsRule, this.$options.data().szsRule);
+      } else if (type === "fstj") {
+        Object.assign(this.$data.fstjRule, this.$options.data().fstjRule);
       }
     },
     saveNormalRule() {
@@ -308,7 +367,7 @@ export default {
     },
     szsRuleReverse(index, label) {
       let all = this.getSzsAll(index, label)
-      let reverseArr = all.filter(num =>  this.szsRule.checks[index].values.indexOf(num) === -1)
+      let reverseArr = all.filter(num => this.szsRule.checks[index].values.indexOf(num) === -1)
       this.szsRule.checks[index].values.splice(0, this.szsRule.checks[index].values.length, ...reverseArr)
     },
     getSzsAll(index, label) {
@@ -337,6 +396,26 @@ export default {
       }
       Object.assign(this.$data.szsRule, this.$options.data().szsRule);
     },
+    saveFstjRule() {
+      if (this.fstjRule.id) {
+        let rule = this.checkRules.find((item) => item.id === this.fstjRule.id);
+        rule.checks = this.fstjRule.checks
+        rule.conditionNums = this.fstjRule.conditionNums
+      } else {
+        let rule = {
+          id: Date.now(),
+          title: this.fstjRule.title,
+          label: this.fstjRule.label,
+          type: "fstj",
+          ignore: false,
+          isOrder: false,
+          checks: this.fstjRule.checks,
+          conditionNums: this.fstjRule.conditionNums,
+        };
+        this.checkRules.push(rule);
+      }
+      Object.assign(this.$data.fstjRule, this.$options.data().fstjRule);
+    },
     changeRule(index) {
       let checkRule = this.checkRules[index];
       if (checkRule.type === "normal") {
@@ -355,6 +434,11 @@ export default {
         this.szsRule.id = checkRule.id;
         this.szsRule.checks = structuredClone(checkRule.checks);
         this.szsRule.conditionNums = checkRule.conditionNums;
+        this.showRule(checkRule.label);
+      } else if (checkRule.type === "fstj") {
+        this.fstjRule.id = checkRule.id;
+        this.fstjRule.checks = structuredClone(checkRule.checks);
+        this.fstjRule.conditionNums = checkRule.conditionNums;
         this.showRule(checkRule.label);
       }
     },
@@ -424,6 +508,8 @@ export default {
         <el-button class="rule" size="small" type="warning" @click="showRule('dzxlmh')">大中小两码合
         </el-button>
         <el-button class="rule" size="small" type="warning" @click="showRule('dzxlmc')">大中小两码差
+        </el-button>
+        <el-button class="rule" size="small" type="warning" @click="showRule('fstj')">复式条件
         </el-button>
       </div>
     </el-card>
@@ -526,6 +612,52 @@ export default {
         <el-button type="primary" @click="saveSzsRule">确 定</el-button>
       </span>
     </el-dialog>
+    <!-- 复式条件 -->
+    <el-dialog :title="fstjRule.title" :visible.sync="fstjRule.show" center width="90%">
+      <div class="rule-form">
+        <div v-for="(rule, index) in fstjRule.checks" :key="index" class="item-rule">
+          <div class="title">
+            <span>{{ rule.label }}:</span>
+          </div>
+          <div class="fs-item">
+            <el-checkbox-group v-model="rule.numArr.nums1" size="mini" class="irc-group">
+              <el-checkbox-button v-for="num in 10" :key="num" :label="num - 1">
+                {{ num - 1 }}
+              </el-checkbox-button>
+            </el-checkbox-group>
+            <el-checkbox-group v-model="rule.numArr.nums2" size="mini" class="irc-group">
+              <el-checkbox-button v-for="num in 10" :key="num" :label="num - 1">
+                {{ num - 1 }}
+              </el-checkbox-button>
+            </el-checkbox-group>
+            <el-checkbox-group v-model="rule.numArr.nums3" size="mini" class="irc-group">
+              <el-checkbox-button v-for="num in 10" :key="num" :label="num - 1">
+                {{ num - 1 }}
+              </el-checkbox-button>
+            </el-checkbox-group>
+            <el-checkbox-group v-model="rule.values" size="mini" class="irc-group">
+              <el-checkbox-button v-for="(item, index) in rule.valuesAll" :key="index" :label="item">
+                {{ item }}
+              </el-checkbox-button>
+            </el-checkbox-group>
+          </div>
+        </div>
+        <div class="rule-foot">
+          <span class="rule-foot-title">满足:</span>
+          <el-checkbox-group v-model="fstjRule.conditionNums">
+            <el-checkbox label="0">0个</el-checkbox>
+            <el-checkbox label="1">1个</el-checkbox>
+            <el-checkbox label="2">2个</el-checkbox>
+            <el-checkbox label="3">3个</el-checkbox>
+            <el-checkbox label="4">4个</el-checkbox>
+          </el-checkbox-group>
+        </div>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="cancelRule('fstj')">取 消</el-button>
+        <el-button type="primary" @click="saveFstjRule">确 定</el-button>
+      </span>
+    </el-dialog>
     <el-card style="margin-top: 5px">
       <div class="rule-list">
         <span v-if="!checkRules.length">暂无条件</span>
@@ -568,6 +700,20 @@ export default {
             <div v-for="(child, index) in item.checks" :key="index">
               <span style="margin-right: 5px">{{ child.label }}:</span>
               <span style="margin-right: 10px">{{ child.values }}</span>
+            </div>
+            <span>满足：{{ item.conditionNums }}个</span>
+          </div>
+          <div v-else-if="item.type === 'fstj'">
+            <div v-for="(child, index) in item.checks" :key="index">
+              <div class="fs-show">
+                <span style="margin-right: 5px">{{ child.label }}:</span>
+                <span style="margin-right: 10px">{{ child.values }}</span>
+              </div>
+              <div class="fs-show">
+                <span style="margin-right: 10px">{{ child.numArr.nums1 }}</span>
+                <span style="margin-right: 10px">{{ child.numArr.nums2 }}</span>
+                <span style="margin-right: 10px">{{ child.numArr.nums3 }}</span>
+              </div>
             </div>
             <span>满足：{{ item.conditionNums }}个</span>
           </div>
@@ -618,9 +764,19 @@ export default {
 
 .irc-group {
   margin-right: 10px;
+  margin-bottom: 5px;
 }
 
 .rule-foot-title {
   margin-right: 10px;
+}
+
+.fs-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.fs-show {
+  margin-bottom: 5px;
 }
 </style>

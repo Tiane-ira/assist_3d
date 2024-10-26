@@ -124,6 +124,7 @@ export default {
     },
     openConvertTool() {
       const param = {
+        title: "转换工具",
         url: '/convert',
         width: 800,
         height: 800
@@ -132,6 +133,7 @@ export default {
     },
     openTableTool() {
       const param = {
+        title: "展示工具",
         url: '/tableShow',
         width: 800,
         height: 800

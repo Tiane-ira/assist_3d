@@ -7,6 +7,7 @@ module.exports = defineConfig({
             preload: 'src/preload.js',
             customFileProtocol: "./",
             builderOptions: {
+                productName: 'assist_3d',
                 // 在这里的配置将会和默认配置合并，然后传递给electron-builder
                 appId: 'assist_3d', // 项目唯一标识
                 copyright: 'Copyright © year 2023', // 可用使用${}引用package.json里面配置项，配置项不存在会报错

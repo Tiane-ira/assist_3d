@@ -123,6 +123,7 @@ export default {
         },
         openTableTool() {
             const param = {
+                title: "展示工具",
                 url: '/tableShow',
                 width: 800,
                 height: 800

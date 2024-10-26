@@ -23,6 +23,7 @@ let mainWindow = null
 async function createWindow() {
     // Create the browser window.
     const win = new BrowserWindow({
+        title: "Assist 3D",
         minWidth: 1200,
         minHeight: 600,
         autoHideMenuBar: true,
@@ -118,6 +119,7 @@ ipcMain.handle("openWindow", (e, param) => {
 
 function openChildWindow(param) {
     var childWin = new BrowserWindow({
+        title: param.title,
         width: param.width,
         height: param.height,
         parent: mainWindow, // win是主窗口，不加parent，新建的窗口将于主窗口平级

@@ -397,6 +397,15 @@ export default {
       Object.assign(this.$data.szsRule, this.$options.data().szsRule);
     },
     saveFstjRule() {
+      let checkMsg = this.checkFstj();
+      console.log(checkMsg);
+      if (checkMsg) {
+        this.$message.error({
+          message: checkMsg,
+          duration: 1000
+        });
+        return
+      }
       if (this.fstjRule.id) {
         let rule = this.checkRules.find((item) => item.id === this.fstjRule.id);
         rule.checks = this.fstjRule.checks
@@ -415,6 +424,23 @@ export default {
         this.checkRules.push(rule);
       }
       Object.assign(this.$data.fstjRule, this.$options.data().fstjRule);
+    },
+    checkFstj() {
+      for (const check of this.fstjRule.checks) {
+        let countMap = new Map()
+        for (const item of [...check.numArr.nums1, ...check.numArr.nums2, ...check.numArr.nums3]) {
+          if (countMap.has(item)) {
+            countMap.set(item, countMap.get(item) + 1);
+          } else {
+            countMap.set(item, 1);
+          }
+        }
+        for (let [key, value] of countMap) {
+          if (value > 1) {
+            return `${check.label}: ${key}重复出现${value}次, 请检查`
+          }
+        }
+      }
     },
     changeRule(index) {
       let checkRule = this.checkRules[index];

@@ -170,10 +170,12 @@ function openChildWindow(param) {
         width: param.width,
         height: param.height,
         parent: mainWindow, // win是主窗口，不加parent，新建的窗口将于主窗口平级
+        autoHideMenuBar: true,
         webPreferences: {
             nodeIntegration: process.env.ELECTRON_NODE_INTEGRATION,
             contextIsolation: !process.env.ELECTRON_NODE_INTEGRATION,
-            preload: path.resolve(__dirname, "preload.js")
+            preload: path.resolve(__dirname, "preload.js"),
+            devTools: isDevelopment,
         }
     })
 

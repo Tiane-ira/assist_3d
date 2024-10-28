@@ -40,11 +40,12 @@ jobs:
       - name: build windows app
         run: |
           npm run win
+        env:
+          GH_TOKEN: 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
 
       # step5: create release
       - name: release
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
         with:
           tag_name: ${{ github.event.inputs.tag }}
           files: "dist/*.exe"

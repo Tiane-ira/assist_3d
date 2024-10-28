@@ -8,7 +8,7 @@ on:
       tag:
         description: "Version tag"
         required: true
-        default: "v0.0.0"
+        default: "v0.1.0"
 
 jobs:
   release:
@@ -48,5 +48,4 @@ jobs:
         with:
           tag_name: ${{ github.event.inputs.tag }}
           files: "dist/*.exe"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}

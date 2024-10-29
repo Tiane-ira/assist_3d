@@ -3,6 +3,7 @@
 import { app, protocol, BrowserWindow, ipcMain, clipboard, Menu } from "electron";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
+import { log } from "console";
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 const path = require("path");
@@ -800,21 +801,40 @@ function checkFstj(code, calcItem) {
     let passCount = 0;
     for (let index = 0; index <= 3; index++) {
         let rule = calcItem.checks[index]
-        let label = ''
+        let valueIndexArr = getFstjValueArr(rule.values, fstjLabel[index])
+        let labelArr = []
         let match = false
-        for (const code of [hun, ten, bit]) {
-            let labelIndex = getFsIndex(code, rule.numArr)
+        for (const item of [hun, ten, bit]) {
+            let labelIndex = getFsIndex(item, rule.numArr)
             if (labelIndex == -1) {
                 continue
             }
-            label += fstjLabel[index][labelIndex]
-            match = rule.values.includes(label)
+            labelArr.push(labelIndex)
         }
+        if (labelArr.length !== 3) {
+            continue
+        }
+        let label = labelArr.sort((a, b) => a - b).join('')
+        match = valueIndexArr.includes(label)
         if (match) {
             passCount++
         }
     }
     return calcItem.conditionNums.includes(passCount + '');
+}
+
+function getFstjValueArr(values, labels) {
+    let indexValueArr = []
+    for (const value of values) {
+        let indexValue = []
+        for (const valueLabel of [...value]) {
+            let index = labels.findIndex((label) => label === valueLabel)
+            indexValue.push(index)
+        }
+        let indexValueStr = indexValue.sort((a, b) => a - b).join('')
+        indexValueArr.push(indexValueStr)
+    }
+    return indexValueArr
 }
 
 function getFsIndex(code, numsArr) {

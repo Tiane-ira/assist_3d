@@ -106,6 +106,7 @@ export default {
             for (const code of this.groupArr) {
                 directArr = [...directArr, ...group2Direct([...code])];
             }
+            directArr = _.uniq(directArr)
             this.resultArr.splice(0, this.resultArr.length, ...directArr);
         },
         diffCode() {

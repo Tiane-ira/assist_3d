@@ -169,6 +169,7 @@ function openChildWindow(param) {
         title: param.title,
         width: param.width,
         height: param.height,
+        icon: "build/icons/icon.ico",
         parent: mainWindow, // win是主窗口，不加parent，新建的窗口将于主窗口平级
         autoHideMenuBar: true,
         webPreferences: {

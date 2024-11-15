@@ -2,7 +2,7 @@ import Vue from "vue";
 import Vuex from "vuex";
 import { allNum, allType } from "@/config";
 import { getConfigList, setConfigList } from "@/utils/config";
-import { getNumObjByCodes,group2Direct } from "@/utils/code";
+import { getNumObjByCodes, group2Direct } from "@/utils/code";
 
 Vue.use(Vuex);
 
@@ -23,6 +23,7 @@ export default new Vuex.Store({
     resultList: [],
     codesResult: "",
     transCodes: [],
+    shCodes: [],
   },
   mutations: {
     CHANGE_CHECK_TAB(state, activeTab) {
@@ -107,9 +108,9 @@ export default new Vuex.Store({
     },
     CHANGE_CODES_RESULT(state, codesList) {
       state.codesResult = codesList.join(" ");
-      if (state.activeTab === "group"){
+      if (state.activeTab === "group") {
         state.transCodes = []
-        for (let code of codesList){
+        for (let code of codesList) {
           state.transCodes = [...state.transCodes, ...group2Direct([...code])]
         }
       }
@@ -117,6 +118,9 @@ export default new Vuex.Store({
     DELETE_CODE(state, code) {
       let index = state.resultList.findIndex((item) => item.code === code);
       state.resultList.splice(index, 1);
+    },
+    SET_SH_CODE(state, codes) {
+      state.shCodes = codes
     },
   },
   actions: {

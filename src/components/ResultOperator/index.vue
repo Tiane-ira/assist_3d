@@ -2,6 +2,7 @@
 import { getIgCounts, getNumDirect, getNumGroup } from "@/utils/code";
 import { mapGetters, mapState } from "vuex";
 import { formatDate } from "@/utils/date";
+import _ from "lodash";
 
 export default {
   name: "ResultOperator",
@@ -27,6 +28,7 @@ export default {
       "checkRules",
       "codesResult",
       "transCodes",
+      "shCodes",
     ]),
     ...mapGetters(["isGroup"]),
     hisList() {
@@ -56,6 +58,7 @@ export default {
       } else {
         codeList = getNumDirect(this.bitList, this.tenList, this.hundredList);
       }
+      _.pullAll(codeList, this.shCodes)
       console.log(codeList)
       let igCounts = getIgCounts(this.igMin, this.igMax); // 默认0-0无容错
       // console.log(codeList, igCounts);

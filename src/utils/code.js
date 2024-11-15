@@ -225,7 +225,7 @@ export const getNumObjByCodes = (codeList) => {
         let lye = get012Label([hun, ten, bit]);
         let smc = getSmcLabel([hun, ten, bit]);
         let smh = getSmhLabel([hun, ten, bit]);
-        objList.push({code, sum, diff, dzx, lye, smc, smh});
+        objList.push({ code, sum, diff, dzx, lye, smc, smh });
     }
     return objList;
 };
@@ -296,6 +296,12 @@ export const group2Direct = (arr) => {
     return new Set(res)
 }
 
+export const direct2Group = (code) => {
+    let arr = [...code]
+    arr.sort((a, b) => a - b)
+    return `${arr[0]}${arr[1]}${arr[2]}`
+}
+
 export const validCodes = (codes) => {
     for (const code of codes) {
         // 正则表达式，匹配三位数字
@@ -305,3 +311,4 @@ export const validCodes = (codes) => {
         }
     }
 }
+

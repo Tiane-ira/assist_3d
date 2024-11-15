@@ -16,7 +16,8 @@
         </div>
         <div class="content">
             <el-card class="area">
-                <div slot="header" v-if="transFlag">组选号码 (号码数: {{ this.groupArr.length }}个)</div>
+                <div slot="header" v-if="currentMode === '组转直'">组选号码 (号码数: {{ this.groupArr.length }}个)</div>
+                <div slot="header" v-else-if="currentMode === '直转组'">直选号码 (号码数: {{ this.groupArr.length }}个)</div>
                 <div slot="header" v-else>号码组1 (号码数: {{ this.groupArr.length }}个)</div>
                 <div>
                     <el-input type="textarea" autosize v-model="groupNums" placeholder="输入号码（空格分隔）"></el-input>
@@ -39,14 +40,14 @@
 </template>
 
 <script>
-import { group2Direct, validCodes } from "@/utils/code";
+import { direct2Group, group2Direct, validCodes } from "@/utils/code";
 import _ from 'lodash'
 export default {
     name: 'ConvertTool',
 
     data() {
         return {
-            modes: ["组转直", "差集", "合集"],
+            modes: ["组转直", "直转组", "差集", "合集"],
             currentMode: "组转直",
             groupNums: "",
             groupNums2: "",
@@ -64,7 +65,7 @@ export default {
             return this.resultArr.join(" ");
         },
         transFlag() {
-            return this.currentMode === "组转直";
+            return this.currentMode === '直转组' || this.currentMode === '组转直'
         }
     },
 
@@ -78,12 +79,19 @@ export default {
             this.resultArr.splice(0, this.resultArr.length);
         },
         doCalc() {
+            let failed = false
             if (this.currentMode === "组转直") {
-                this.transCode();
+                failed = this.transCode1();
+            } else if (this.currentMode === "直转组") {
+                failed = this.transCode2();
             } else if (this.currentMode === "差集") {
-                this.diffCode();
+                failed = this.diffCode();
             } else if (this.currentMode === "合集") {
-                this.unionCode();
+                failed = this.unionCode();
+            }
+
+            if (failed) {
+                return;
             }
 
             this.$message({
@@ -92,7 +100,7 @@ export default {
                 duration: 1000
             });
         },
-        transCode() {
+        transCode1() {
             let errCode = validCodes(this.groupArr)
             if (errCode) {
                 this.$message({
@@ -100,7 +108,7 @@ export default {
                     type: "error",
                     duration: 1000
                 });
-                return
+                return true
             }
             let directArr = []
             for (const code of this.groupArr) {
@@ -108,15 +116,54 @@ export default {
             }
             directArr = _.uniq(directArr)
             this.resultArr.splice(0, this.resultArr.length, ...directArr);
+            return false
+        },
+        transCode2() {
+            let errCode = validCodes(this.groupArr)
+            if (errCode) {
+                this.$message({
+                    message: `${errCode}不是三位数字, 请检查`,
+                    type: "error",
+                    duration: 1000
+                });
+                return true
+            }
+            let newArr = []
+            for (const code of this.groupArr) {
+                newArr = [...newArr, direct2Group(code)];
+            }
+            newArr = _.uniq(newArr)
+            this.resultArr.splice(0, this.resultArr.length, ...newArr);
+            return false
         },
         diffCode() {
+            let errCode = validCodes([...this.groupArr, ...this.groupArr2])
+            if (errCode) {
+                this.$message({
+                    message: `${errCode}不是三位数字, 请检查`,
+                    type: "error",
+                    duration: 1000
+                });
+                return true
+            }
             let arr1 = _.difference(this.groupArr, this.groupArr2)
             let arr2 = _.difference(this.groupArr2, this.groupArr)
             this.resultArr.splice(0, this.resultArr.length, ...[...arr1, ...arr2]);
+            return false
         },
         unionCode() {
+            let errCode = validCodes([...this.groupArr, ...this.groupArr2])
+            if (errCode) {
+                this.$message({
+                    message: `${errCode}不是三位数字, 请检查`,
+                    type: "error",
+                    duration: 1000
+                });
+                return true
+            }
             let arr1 = _.union(this.groupArr, this.groupArr2)
             this.resultArr.splice(0, this.resultArr.length, ...arr1);
+            return false
         },
         copyResult() {
             window.electron.copy2Clipboard(this.resultNums);

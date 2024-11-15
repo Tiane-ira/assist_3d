@@ -1,5 +1,6 @@
 <script>
-import { getSeqArr } from "@/utils/code";
+import { direct2Group, getSeqArr, validCodes } from "@/utils/code";
+import _ from 'lodash'
 import { all012l, allDzx, allHmxt, allJiOu, allJodw, allMCSM } from "@/config";
 import IgnoreErrorCheck from "@/components/IgnoreErrorCheck/index.vue";
 import OrderCheck from "@/components/OrderCheck/index.vue";
@@ -102,6 +103,11 @@ export default {
         ],
         conditionNums: ['4'],
       },
+      shRule: {
+        show: false,
+        title: "",
+        shInput: ""
+      },
     };
   },
   computed: {
@@ -113,7 +119,10 @@ export default {
         this.$store.commit("CHANG_CHECK_RULES", newList);
       },
     },
-    ...mapState(["activeTab"]),
+    ...mapState(["activeTab", "shCodes"]),
+    shGroup() {
+      return this.shRule.shInput.trim().split(" ").filter(item => item, length > 0);
+    },
   },
   methods: {
     changeIg(checked) {
@@ -248,6 +257,10 @@ export default {
         this.fstjRule.checks[1].label = "重斜跳";
         this.fstjRule.checks[2].label = "邻孤传";
         this.fstjRule.checks[3].label = "热温冷";
+      } else if (label === 'sh') {
+        this.shRule.show = true
+        this.shRule.title = '杀号'
+        this.shRule.shInput = this.shCodes.join(' ')
       }
     },
     reverseRule(type) {
@@ -266,6 +279,9 @@ export default {
         Object.assign(this.$data.szsRule, this.$options.data().szsRule);
       } else if (type === "fstj") {
         Object.assign(this.$data.fstjRule, this.$options.data().fstjRule);
+      } else if (type === "sh") {
+        this.shRule.show = false
+        this.shRule.shInput = ''
       }
     },
     saveNormalRule() {
@@ -472,6 +488,24 @@ export default {
       this.checkRules.splice(index, 1);
       this.$store.commit("RESET_IGNORE_ERR");
     },
+    saveShRule() {
+      let errCode = validCodes(this.shGroup)
+      if (errCode) {
+        this.$message({
+          message: `${errCode}不是三位数字, 请检查`,
+          type: "error",
+          duration: 1000
+        });
+        return
+      }
+      let newArr = []
+      for (const code of this.shGroup) {
+        newArr = [...newArr, direct2Group(code)];
+      }
+      newArr = _.uniq(newArr)
+      this.$store.commit("SET_SH_CODE", newArr);
+      this.shRule.show = false
+    }
   },
   mounted() {
     this.$store.dispatch("loadConfig");
@@ -536,6 +570,10 @@ export default {
         <el-button class="rule" size="small" type="warning" @click="showRule('dzxlmc')">大中小两码差
         </el-button>
         <el-button class="rule" size="small" type="warning" @click="showRule('fstj')">复式条件
+        </el-button>
+      </div>
+      <div class="row">
+        <el-button class="rule" size="small" type="warning" @click="showRule('sh')">杀号
         </el-button>
       </div>
     </el-card>
@@ -682,6 +720,16 @@ export default {
       <span slot="footer" class="dialog-footer">
         <el-button @click="cancelRule('fstj')">取 消</el-button>
         <el-button type="primary" @click="saveFstjRule">确 定</el-button>
+      </span>
+    </el-dialog>
+    <!-- 输入型条件类型 -->
+    <el-dialog :title="shRule.title" :visible.sync="shRule.show" center width="90%">
+      <div class="rule-form">
+        <el-input v-model="shRule.shInput" placeholder="输入杀号数字" type="textarea"></el-input>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="cancelRule('sh')">取 消</el-button>
+        <el-button type="primary" @click="saveShRule">确 定</el-button>
       </span>
     </el-dialog>
     <el-card style="margin-top: 5px">

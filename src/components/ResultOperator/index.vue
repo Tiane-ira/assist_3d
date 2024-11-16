@@ -153,18 +153,16 @@ export default {
 
 <template>
   <div class="res-op">
-    <el-button :loading="loading" type="primary" @click="getResult">获取结果
+    <el-button :loading="loading" type="primary" size="mini" @click="getResult">获取结果
     </el-button>
-    <el-button :disabled="!resultList.length" type="warning" @click="copyResult">复制结果
+    <el-button :disabled="!resultList.length" type="warning" size="mini" @click="copyResult">复制结果
     </el-button>
-    <el-button :disabled="!checkRules.length" type="primary" @click="showSaveRule">保存条件
+    <el-button :disabled="!checkRules.length" type="primary" size="mini" @click="showSaveRule">保存条件
     </el-button>
-    <el-button type="warning" @click="showRuleHis">条件历史</el-button>
-    <el-button v-if="activeTab === 'group'" :disabled="!resultList.length" type="info"
-      @click="copyTransResult">复制转直结果</el-button>
-    <el-button type="primary" @click="openConvertTool">转换工具
+    <el-button type="warning" @click="showRuleHis" size="mini">条件历史</el-button>
+    <el-button type="primary" @click="openConvertTool" size="mini">转换工具
     </el-button>
-    <el-button type="danger" @click="openTableTool">展示工具</el-button>
+    <el-button type="danger" @click="openTableTool" size="mini">展示工具</el-button>
     <el-dialog :visible.sync="hisShow" center title="条件历史列表" width="60%">
       <el-table ref="hisTable" :border="true" :data="hisList" :header-cell-style="{ 'text-align': 'center' }">
         <el-table-column align="center" label="序号" type="index">

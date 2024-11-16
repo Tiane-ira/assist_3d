@@ -505,6 +505,9 @@ export default {
       newArr = _.uniq(newArr)
       this.$store.commit("SET_SH_CODE", newArr);
       this.shRule.show = false
+    },
+    clearShCodes() {
+      this.$store.commit("SET_SH_CODE", []);
     }
   },
   mounted() {
@@ -575,6 +578,20 @@ export default {
       <div class="row">
         <el-button class="rule" size="small" type="warning" @click="showRule('sh')">杀号
         </el-button>
+      </div>
+    </el-card>
+
+    <el-card v-if="shCodes.length" style="margin-top: 5px;">
+      <div class="sh-rule">
+        <div>
+          <span>杀号：{{ this.shCodes }}</span>
+        </div>
+        <div>
+          <el-button size="mini" type="warning" @click="showRule('sh')">修改
+          </el-button>
+          <el-button size="mini" type="danger" @click="clearShCodes">清除
+          </el-button>
+        </div>
       </div>
     </el-card>
 
@@ -852,5 +869,11 @@ export default {
 
 .fs-show {
   margin-bottom: 5px;
+}
+
+.sh-rule {
+  margin-top: 5px;
+  display: flex;
+  justify-content: space-between;
 }
 </style>

@@ -89,7 +89,7 @@ export default {
                 });
                 return
             }
-            let arr1 = _.union(this.groupArr, this.groupArr2)
+            let arr1 = _.intersection(this.groupArr, this.groupArr2)
             this.resultArr.splice(0, this.resultArr.length, ...arr1);
             this.$message({
                 message: "计算完成",

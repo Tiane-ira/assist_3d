@@ -28,7 +28,7 @@ export default {
 
     data() {
         return {
-            modes: ["组转直", "直转组", "差集", "合集"],
+            modes: ["组转直", "直转组", "差集", "交集"],
             currentMode: 0,
             types: ['group', 'direct', 'diff', 'union']
         };

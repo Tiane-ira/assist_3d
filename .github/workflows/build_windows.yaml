@@ -41,7 +41,7 @@ jobs:
         run: |
           npm run win
         env:
-          GH_TOKEN: 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
+          GH_TOKEN: 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
 
       # step5: create release
       - name: release

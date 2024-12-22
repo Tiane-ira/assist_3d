@@ -42,8 +42,6 @@ jobs:
       - name: build windows app
         run: |
           npm run win
-        with:
-          token: ${{ secrets.GH_TOKEN }}
 
       # step5: create release
       - name: release

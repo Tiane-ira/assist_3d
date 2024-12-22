@@ -19,7 +19,6 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest]
-        node-version: [18.x]
 
     # create steps
     steps:
@@ -30,6 +29,8 @@ jobs:
       # step2: install node env
       - name: Install Node.js
         uses: actions/setup-node@v2-beta
+        with:
+          node-version: 18
 
       # step3: npm install
       - name: npm install

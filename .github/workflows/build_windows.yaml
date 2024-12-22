@@ -49,4 +49,4 @@ jobs:
         with:
           tag_name: ${{ github.event.inputs.tag }}
           files: "dist/*.exe"
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}

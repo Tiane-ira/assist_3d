@@ -42,6 +42,8 @@ jobs:
       - name: build windows app
         run: |
           npm run win
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # step5: create release
       - name: release
@@ -49,4 +51,4 @@ jobs:
         with:
           tag_name: ${{ github.event.inputs.tag }}
           files: "dist/*.exe"
-          token: ${{ secrets.GH_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}

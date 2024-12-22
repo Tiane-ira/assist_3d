@@ -40,8 +40,6 @@ jobs:
       - name: build windows app
         run: |
           npm run win
-        env:
-          GH_TOKEN: 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
 
       # step5: create release
       - name: release

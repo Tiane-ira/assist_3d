@@ -1,4 +1,4 @@
-name: build_windows
+name: sync_gitee
 
 on:
   release:

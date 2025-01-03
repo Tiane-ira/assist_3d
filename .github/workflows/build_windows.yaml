@@ -52,3 +52,18 @@ jobs:
           tag_name: ${{ github.event.inputs.tag }}
           files: "dist/*.exe"
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      # step6: create gitee release
+      - name: gitee release
+        id: create_gitee_release
+        uses: nicennnnnnnlee/action-gitee-release@v1.0.5
+        with:
+          gitee_owner: xrj4j_admin
+          gitee_repo: assist_3d
+          gitee_token: ${{ secrets.GITEE_TOKEN }}
+          gitee_tag_name: ${{ github.event.inputs.tag }}
+          gitee_release_name: ${{ github.event.inputs.tag }}
+          gitee_target_commitish: master
+          gitee_upload_retry_times:  3
+          gitee_files: |
+            "dist/*.exe"

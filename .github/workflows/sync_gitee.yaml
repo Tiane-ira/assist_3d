@@ -3,26 +3,18 @@ name: sync_gitee
 on:
   release:
     types: [published]
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: "Version tag"
-        required: true
-        default: "v0.1.0"
 
 jobs:
-  release:
-    name: Build And Release Windows
-
-    runs-on: ${{ matrix.os }}
-
+  build:
+    name: sync_gitee
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [windows-latest]
+        runs-on: [ubuntu-latest]
 
     steps:
       - name: gitee release
-        id: create_release
+        id: gitee_release
         uses: h-twinkle/sync-action@v1.0
         with:
           gitee_owner: xrj4j_admin
@@ -30,4 +22,4 @@ jobs:
           gitee_token: ${{ secrets.GITEE_TOKEN }}
           github_owner: Tiane-ira
           github_repo: assist_3d
-          gitee_upload_retry_times:  3
+          gitee_upload_retry_times: 3

@@ -53,8 +53,3 @@ jobs:
           body: "Release ${{ github.event.inputs.tag }}"
           files: "dist/*.exe"
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      # step6: create gitee release
-      - name: gitee release
-        id: create_release
-        uses: ./.github/workflows/sync_gitee.yaml

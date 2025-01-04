@@ -57,11 +57,4 @@ jobs:
       # step6: create gitee release
       - name: gitee release
         id: create_release
-        uses: h-twinkle/sync-action@master
-        with:
-          gitee_owner: xrj4j_admin
-          gitee_repo: assist_3d
-          gitee_token: ${{ secrets.GITEE_TOKEN }}
-          github_owner: Tiane-ira
-          github_repo: assist_3d
-          gitee_upload_retry_times:  3
+        uses: ./.github/workflows/sync_gitee.yaml

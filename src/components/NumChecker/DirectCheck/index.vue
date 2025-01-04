@@ -33,6 +33,14 @@ export default {
         this.$store.commit("CHANGE_HUN_LIST", newList);
       },
     },
+    groupTypes: {
+      get() {
+        return this.$store.state.groupTypes;
+      },
+      set(newList) {
+        this.$store.commit("CHANGE_GROUP_TYPE", newList);
+      },
+    },
   },
   methods: {
     bitAll() {
@@ -41,7 +49,7 @@ export default {
     bitClear() {
       this.$store.commit("CHANGE_BIT_LIST", [])
     },
-    bitReverse(){
+    bitReverse() {
       this.$store.commit("CHANGE_BIT_LIST", allNum.filter(num => this.bitList.indexOf(num) === -1))
     },
     tenAll() {
@@ -50,7 +58,7 @@ export default {
     tenClear() {
       this.$store.commit("CHANGE_TEN_LIST", [])
     },
-    tenReverse(){
+    tenReverse() {
       this.$store.commit("CHANGE_TEN_LIST", allNum.filter(num => this.tenList.indexOf(num) === -1))
     },
     hunAll() {
@@ -59,7 +67,7 @@ export default {
     hunClear() {
       this.$store.commit("CHANGE_HUN_LIST", [])
     },
-    hunReverse(){
+    hunReverse() {
       this.$store.commit("CHANGE_HUN_LIST", allNum.filter(num => this.hundredList.indexOf(num) === -1))
     },
   },
@@ -77,8 +85,7 @@ export default {
           <el-button type="text" size="medium" @click="hunReverse">反选</el-button>
         </div>
         <el-checkbox-group v-model="hundredList" size="small" class="num-box">
-          <el-checkbox-button v-for="num in numList" :label="num" :key="num"
-          >{{ num }}
+          <el-checkbox-button v-for="num in numList" :label="num" :key="num">{{ num }}
           </el-checkbox-button>
         </el-checkbox-group>
       </div>
@@ -90,8 +97,7 @@ export default {
           <el-button type="text" size="medium" @click="tenReverse">反选</el-button>
         </div>
         <el-checkbox-group v-model="tenList" size="small" class="num-box">
-          <el-checkbox-button v-for="num in numList" :label="num" :key="num"
-          >{{ num }}
+          <el-checkbox-button v-for="num in numList" :label="num" :key="num">{{ num }}
           </el-checkbox-button>
         </el-checkbox-group>
       </div>
@@ -103,11 +109,18 @@ export default {
           <el-button type="text" size="medium" @click="bitReverse">反选</el-button>
         </div>
         <el-checkbox-group v-model="bitList" size="small" class="num-box">
-          <el-checkbox-button v-for="num in numList" :label="num" :key="num"
-            >{{ num }}
+          <el-checkbox-button v-for="num in numList" :label="num" :key="num">{{ num }}
           </el-checkbox-button>
         </el-checkbox-group>
       </div>
+      <el-checkbox-group v-model="groupTypes" class="group-type">
+        <el-checkbox label="豹子"></el-checkbox>
+        <el-checkbox label="组三"></el-checkbox>
+        <el-checkbox label="组六"></el-checkbox>
+        <el-checkbox label="顺子"></el-checkbox>
+        <el-checkbox label="半顺"></el-checkbox>
+        <el-checkbox label="杂六"></el-checkbox>
+      </el-checkbox-group>
     </el-card>
   </div>
 </template>
@@ -121,5 +134,9 @@ export default {
     margin-right: 5px;
     font-weight: bold;
   }
+}
+
+.num-box {
+  margin-bottom: 20px;
 }
 </style>

@@ -56,7 +56,7 @@ export default {
       if (this.isGroup) {
         codeList = getNumGroup(this.groupList, this.groupTypes);
       } else {
-        codeList = getNumDirect(this.bitList, this.tenList, this.hundredList);
+        codeList = getNumDirect(this.bitList, this.tenList, this.hundredList, this.groupTypes);
       }
       _.pullAll(codeList, this.shCodes)
       console.log(codeList)

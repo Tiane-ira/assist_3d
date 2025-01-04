@@ -56,6 +56,10 @@ function getBzList(numList) {
     return resArr;
 }
 
+function isBz(code) {
+    return code[0] === code[1] && code[1] === code[2];
+}
+
 //组三:竟猜三位开奖号码，即百位、十位和个位，顺序不限，且投注时三位号码有两位相同。
 function getZsList(numList) {
     if (numList.length < 2) {
@@ -73,6 +77,10 @@ function getZsList(numList) {
         }
     }
     return resArr;
+}
+
+function isZs(code) {
+    return !isBz(code) && (code[0] === code[1] || code[1] === code[2] || code[0] === code[2]);
 }
 
 //组六:竟猜三位开奖号码，即百位、十位和个位，顺序不限，且投注时三位号码各不相同
@@ -96,6 +104,10 @@ function getZulList(numList) {
         }
     }
     return resArr;
+}
+
+function isZul(code) {
+    return code[0] !== code[1] && code[1] !== code[2] && code[0] !== code[2];
 }
 
 //顺子:竟猜三位开奖号码，即百位、十位和个位，百位、十位和个位都不相同且依次递增为1,从0-9,9-0循环
@@ -161,6 +173,7 @@ function isShunZi(code) {
 }
 
 function isBanShun(code) {
+    if (isShunZi(code)) return false
     let codeArr = [code[0], code[1], code[2]].sort();
     return (
         szIncrement(codeArr[0]) === codeArr[1] ||
@@ -193,7 +206,12 @@ function getZalList(numList) {
     return resArr;
 }
 
-export const getNumDirect = (bitList, tenList, hunList) => {
+function isZal(code) {
+    return !isBz(code) && !isZs(code) && !isShunZi(code) && !isBanShun(code)
+}
+
+export const getNumDirect = (bitList, tenList, hunList, typeList) => {
+    let resultList = [];
     let codeList = [];
     for (let hun of hunList) {
         for (let ten of tenList) {
@@ -202,7 +220,34 @@ export const getNumDirect = (bitList, tenList, hunList) => {
             }
         }
     }
-    return codeList;
+    for (const code of codeList) {
+        if (typeList.indexOf("豹子") > -1 && isBz(code)) {
+            resultList = [...resultList, code]
+            continue
+        }
+        if (typeList.indexOf("组三") > -1 && isZs(code)) {
+            resultList = [...resultList, code]
+            continue
+        }
+        if (typeList.indexOf("组六") > -1 && isZul(code)) {
+            resultList = [...resultList, code]
+            continue
+        } else {
+            if (typeList.indexOf("顺子") > -1 && isShunZi(code)) {
+                resultList = [...resultList, code]
+                continue
+            }
+            if (typeList.indexOf("半顺") > -1 && isBanShun(code)) {
+                resultList = [...resultList, code]
+                continue
+            }
+            if (typeList.indexOf("杂六") > -1 && isZal(code)) {
+                resultList = [...resultList, code]
+                continue
+            }
+        }
+    }
+    return resultList;
 };
 
 function distinctCodes(codeList) {

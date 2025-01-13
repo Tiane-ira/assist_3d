@@ -174,6 +174,7 @@ function isShunZi(code) {
 
 function isBanShun(code) {
     if (isShunZi(code)) return false
+    if (isZs(code)) return false
     let codeArr = [code[0], code[1], code[2]].sort();
     return (
         szIncrement(codeArr[0]) === codeArr[1] ||

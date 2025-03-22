@@ -36,6 +36,7 @@ jobs:
       - name: npm install
         run: |
           npm install phantomjs@2.1.1 --ignore-scripts
+          npm install electron@28.1.0 --save-dev
           npm install
 
       # step4: build app

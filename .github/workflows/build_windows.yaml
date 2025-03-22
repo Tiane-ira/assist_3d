@@ -30,7 +30,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v2-beta
         with:
-          node-version: 20
+          node-version: 18
 
       # step3: npm install
       - name: npm install

@@ -35,7 +35,6 @@ jobs:
       # step3: npm install
       - name: npm install
         run: |
-          npm install -g phantomjs-prebuilt --unsafe-perm
           npm install
 
       # step4: build app

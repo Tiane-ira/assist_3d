@@ -681,21 +681,14 @@ function getHmxtLabel(hun, ten, bit) {
     let hmxt = ""
     if (bit === ten && ten === hun) {
         hmxt = "平行形"
-    } else if (hun < ten && ten < bit) {
-        hmxt = "上升形"
-    } else if (hun > ten && ten > bit) {
-        hmxt = "下降形"
-    } else if (hun === ten || ten === bit || hun === bit) {
-        let arr = [hun, ten, bit].sort()
-        if (arr[0] === arr[1]) {
-            hmxt = "升降凸"
-        } else {
-            hmxt = "升降凹"
-        }
     } else if (hun < ten && ten > bit) {
         hmxt = "凸起形"
     } else if (hun > ten && ten < bit) {
         hmxt = "凹下形"
+    } else if (hun <= ten && ten <= bit) {
+        hmxt = "上升形"
+    } else if (hun >= ten && ten >= bit) {
+        hmxt = "下降形"
     }
     return hmxt
 }

@@ -686,7 +686,12 @@ function getHmxtLabel(hun, ten, bit) {
     } else if (hun > ten && ten > bit) {
         hmxt = "下降形"
     } else if (hun === ten || ten === bit || hun === bit) {
-        hmxt = "组三"
+        let arr = [hun, ten, bit].sort()
+        if (arr[0] === arr[1]) {
+            hmxt = "升降凸"
+        } else {
+            hmxt = "升降凹"
+        }
     } else if (hun < ten && ten > bit) {
         hmxt = "凸起形"
     } else if (hun > ten && ten < bit) {
@@ -823,6 +828,21 @@ function checkFstj(code, calcItem) {
     return calcItem.conditionNums.includes(passCount + '');
 }
 
+function checkEcdw(code, calcItem) {
+    let hun = parseInt(code[0]);
+    let ten = parseInt(code[1]);
+    let bit = parseInt(code[2]);
+    let arr = [hun, ten, bit]
+    let passCount = 0;
+    for (let index = 0; index <= 2; index++) {
+        let match = calcItem.checks[index].values.includes(arr[index]);
+        if (match) {
+            passCount++;
+        }
+    }
+    return calcItem.conditionNums.includes(passCount + '');
+}
+
 function getFstjValueArr(values, labels) {
     let indexValueArr = []
     for (const value of values) {
@@ -867,6 +887,8 @@ function checkCode(code, calcItem) {
         return checkDzxlmc(code, calcItem);
     } else if (label === "fstj") {
         return checkFstj(code, calcItem);
+    } else if (label === "ecdw") {
+        return checkEcdw(code, calcItem);
     } else if (calcItem.ignore) {
         let checks = calcItem.checks;
         // 容错计算,容错忽略排序,规则作为整体计算反向

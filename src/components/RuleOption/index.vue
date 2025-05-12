@@ -121,7 +121,8 @@ export default {
     },
     ...mapState(["activeTab", "shCodes"]),
     shGroup() {
-      return this.shRule.shInput.trim().split(" ").filter(item => item, length > 0);
+      let arr = this.shRule.shInput.trim().split(" ").filter(item => item, length > 0);
+      return [...new Set(arr)]
     },
   },
   methods: {
@@ -505,12 +506,16 @@ export default {
         });
         return
       }
-      let newArr = []
-      for (const code of this.shGroup) {
-        newArr = [...newArr, direct2Group(code)];
+      if (this.activeTab == 'direct') {
+        this.$store.commit("SET_SH_CODE", this.shGroup);
+      } else {
+        let newArr = []
+        for (const code of this.shGroup) {
+          newArr = [...newArr, direct2Group(code)];
+        }
+        newArr = _.uniq(newArr)
+        this.$store.commit("SET_SH_CODE", newArr);
       }
-      newArr = _.uniq(newArr)
-      this.$store.commit("SET_SH_CODE", newArr);
       this.shRule.show = false
     },
     clearShCodes() {

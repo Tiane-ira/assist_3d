@@ -257,6 +257,13 @@ export default {
         this.fstjRule.checks[1].label = "重斜跳";
         this.fstjRule.checks[2].label = "邻孤传";
         this.fstjRule.checks[3].label = "热温冷";
+      } else if (label === "ecdw") {
+        this.szsRule.show = true;
+        this.szsRule.label = label;
+        this.szsRule.title = "二次定位";
+        this.szsRule.checks[0].label = "百位";
+        this.szsRule.checks[1].label = "十位";
+        this.szsRule.checks[2].label = "个位";
       } else if (label === 'sh') {
         this.shRule.show = true
         this.shRule.title = '杀号'
@@ -577,6 +584,9 @@ export default {
       </div>
       <div class="row">
         <el-button class="rule" size="small" type="warning" @click="showRule('sh')">杀号
+        </el-button>
+        <!-- 直选才有 -->
+        <el-button v-if="activeTab === 'direct'" class="rule" size="small" type="warning" @click="showRule('ecdw')">二次定位
         </el-button>
       </div>
     </el-card>

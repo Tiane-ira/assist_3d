@@ -3,13 +3,15 @@
         <el-card class="area">
             <div slot="header">号码组1 (号码数: {{ this.groupArr.length }}个)</div>
             <div>
-                <el-input type="textarea" autosize v-model="groupNums" placeholder="输入号码（空格分隔）"></el-input>
+                <el-input type="textarea" autosize v-model="groupNums" @blur="deduplication1"
+                    placeholder="输入号码（空格分隔）"></el-input>
             </div>
         </el-card>
         <el-card class="area">
             <div slot="header">号码组2 (号码数: {{ this.groupArr2.length }}个)</div>
             <div>
-                <el-input type="textarea" autosize v-model="groupNums2" placeholder="输入号码（空格分隔）"></el-input>
+                <el-input type="textarea" autosize v-model="groupNums2" @blur="deduplication2"
+                    placeholder="输入号码（空格分隔）"></el-input>
             </div>
         </el-card>
         <el-card class="area">
@@ -71,8 +73,8 @@ export default {
                 return
             }
             let arr1 = _.difference(this.groupArr, this.groupArr2)
-            let arr2 = _.difference(this.groupArr2, this.groupArr)
-            this.resultArr.splice(0, this.resultArr.length, ...[...arr1, ...arr2]);
+            // let arr2 = _.difference(this.groupArr2, this.groupArr)
+            this.resultArr.splice(0, this.resultArr.length, ...arr1);
             this.$message({
                 message: "计算完成",
                 type: "success",
@@ -101,6 +103,14 @@ export default {
             this.groupNums = ''
             this.groupNums2 = ''
             this.resultArr.splice(0, this.resultArr.length, ...[]);
+        },
+        deduplication1() {
+            let arr = this.groupNums.trim().split(" ").filter(item => item, length > 0);
+            this.groupNums = [...new Set(arr)].join(" ")
+        },
+        deduplication2() {
+            let arr = this.groupNums2.trim().split(" ").filter(item => item, length > 0);
+            this.groupNums2 = [...new Set(arr)].join(" ")
         }
     },
 };

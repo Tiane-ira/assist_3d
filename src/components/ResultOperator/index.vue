@@ -62,9 +62,14 @@ export default {
       console.log(codeList)
       let igCounts = getIgCounts(this.igMin, this.igMax); // 默认0-0无容错
       // console.log(codeList, igCounts);
+      let zxsmcRule = this.checkRules.find(item => item.label === 'zxsmc')
       window.electron
         .filterCodes(codeList, this.checkRules, igCounts, this.orderType)
         .then((filteredCodeList) => {
+          if (zxsmcRule) {
+            // 根据直选三码差进行过滤和排序
+            filteredCodeList = this.zxsmcFilterAndSort(filteredCodeList, zxsmcRule)
+          }
           this.$store.commit("CHANGE_RESULT_LIST", filteredCodeList);
           this.$store.commit("CHANGE_CODES_RESULT", filteredCodeList);
           this.loading = false;
@@ -74,6 +79,25 @@ export default {
           this.loading = false;
           this.$message.error("结果计算失败:" + e.toString());
         });
+    },
+
+    zxsmcFilterAndSort(codeList, rule) {
+      let codePool = rule.checks
+      let filterCodeItems = codeList.map(code => {
+        let hun = parseInt(code[0]);
+        let ten = parseInt(code[1]);
+        let bit = parseInt(code[2]);
+        let highDiff = Math.abs(hun - ten);
+        let midDiff = Math.abs(hun - bit);
+        let lowDiff = Math.abs(ten - bit);
+        let smcCode = `${highDiff}${midDiff}${lowDiff}`;
+        return { code, smcCode }
+      }).filter(item => codePool.includes(item.smcCode))
+      // 根据codePool中的索引顺序排序filterCodeItems
+      filterCodeItems.sort((a, b) => {
+        return codePool.indexOf(a.smcCode) - codePool.indexOf(b.smcCode);
+      });
+      return filterCodeItems.map(item => item.code);
     },
     copyResult() {
       if (this.resultList.length === 0) {

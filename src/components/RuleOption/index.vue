@@ -1,7 +1,7 @@
 <script>
 import { direct2Group, getSeqArr, validCodes } from "@/utils/code";
 import _ from 'lodash'
-import { all012l, allDzx, allHmxt, allJiOu, allJodw, allMCSM } from "@/config";
+import { all012l, allDzx, allHmxt, allJiOu, allJodw, allMCSM, allSmc as allZxsmc } from "@/config";
 import IgnoreErrorCheck from "@/components/IgnoreErrorCheck/index.vue";
 import OrderCheck from "@/components/OrderCheck/index.vue";
 import { mapState } from "vuex";
@@ -215,6 +215,11 @@ export default {
         this.normalRule.label = label;
         this.normalRule.title = "奇偶定位";
         this.normalRule.valList = structuredClone(allJodw);
+      } else if (label === "zxsmc") {
+        this.normalRule.show = true;
+        this.normalRule.label = label;
+        this.normalRule.title = "直选三码差";
+        this.normalRule.valList = structuredClone(allZxsmc);
       } else if (label === "dmz") {
         this.dmzRule.show = true;
         this.dmzRule.label = label;
@@ -570,6 +575,9 @@ export default {
         </el-button>
         <el-button class="rule" size="small" type="success" @click="showRule('jodw')">奇偶定位
         </el-button>
+        <el-button v-if="activeTab === 'direct'" class="rule" size="small" type="success"
+          @click="showRule('zxsmc')">直选三码差
+        </el-button>
       </div>
 
       <!-- 不支持排序和容错 -->
@@ -774,9 +782,9 @@ export default {
             </div>
             <div class="operator">
               <!-- 普通类型条件才有排序和容错 -->
-              <el-checkbox v-if="item.type == 'normal'" v-model="item.isOrder" style="margin-right: 10px">排序
+              <el-checkbox v-if="item.type == 'normal' && item.label != 'zxsmc'" v-model="item.isOrder" style="margin-right: 10px">排序
               </el-checkbox>
-              <el-checkbox v-model="item.ignore" v-if="item.type == 'normal'" style="margin-right: 10px"
+              <el-checkbox v-model="item.ignore" v-if="item.type == 'normal' && item.label != 'zxsmc'" style="margin-right: 10px"
                 @change="changeIg">容错
               </el-checkbox>
               <el-button size="mini" type="warning" @click="changeRule(index)">修改

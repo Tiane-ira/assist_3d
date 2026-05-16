@@ -1,6 +1,6 @@
 {
   "name": "assist_3d",
-  "version": "0.2.2",
+  "version": "0.2.4",
   "author": {
     "name": "xrj"
   },
@@ -19,7 +19,7 @@
     "lodash": "^4.17.21",
     "moment": "^2.30.1",
     "node-sass": "^9.0.0",
-    "phantomjs": "^2.1.1",
+    "puppeteer": "^21.0.0",
     "sass-loader": "^13.3.2",
     "scss": "^0.2.4",
     "scss-loader": "^0.0.1",

@@ -713,6 +713,19 @@ function checkJodw(code, checks) {
     return checks.indexOf(jodw) === -1;
 }
 
+function checkZxsmc(code, checks) {
+    console.log("checkZxsmc",checks)
+    let hun = parseInt(code[0]);
+    let ten = parseInt(code[1]);
+    let bit = parseInt(code[2]);
+    let highDiff = Math.abs(hun - ten);
+    let midDiff = Math.abs(hun - bit);
+    let lowDiff = Math.abs(ten - bit);
+    let smcCode = `${highDiff}${midDiff}${lowDiff}`;
+    if (checks.indexOf(smcCode) > -1) return true;
+    return false;
+}
+
 function checkDmz(code, calcItem) {
     let hun = parseInt(code[0]);
     let ten = parseInt(code[1]);
@@ -882,6 +895,8 @@ function checkCode(code, calcItem) {
         return checkFstj(code, calcItem);
     } else if (label === "ecdw") {
         return checkEcdw(code, calcItem);
+    } else if (label === "zxsmc") {
+        return checkZxsmc(code, calcItem.checks);
     } else if (calcItem.ignore) {
         let checks = calcItem.checks;
         // 容错计算,容错忽略排序,规则作为整体计算反向

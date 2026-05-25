@@ -24,3 +24,9 @@ pnpm-debug.log*
 
 #Electron-builder output
 /dist_electron
+
+# Build output
+/out
+
+# Claude Code local settings
+.claude/*.local.json

@@ -1,67 +1,91 @@
 {
   "name": "assist_3d",
-  "version": "0.2.5",
+  "version": "0.3.0",
   "author": {
     "name": "xrj"
   },
   "private": true,
+  "main": "./out/main/index.js",
   "scripts": {
-    "start": "vue-cli-service electron:serve",
-    "win": "set NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service electron:build --win",
-    "mac": "export NODE_OPTIONS=--openssl-legacy-provider && export PYTHON_PATH=/Library/Frameworks/Python.framework/Versions/2.7/bin/python && vue-cli-service electron:build --mac",
-    "icon": "electron-icon-builder --input=./public/icon.png --output=build --flatten"
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "win": "electron-vite build && electron-builder --win",
+    "mac": "electron-vite build && electron-builder --mac",
+    "icon": "electron-icon-builder --input=./public/icon.png --output=build --flatten",
+    "lint": "eslint . --ext .ts,.vue"
   },
-  "main": "background.js",
   "dependencies": {
-    "core-js": "^3.36.1",
-    "electron-store": "^8.1.0",
-    "element-ui": "^2.15.14",
+    "element-plus": "^2.10.0",
     "lodash": "^4.17.21",
     "moment": "^2.30.1",
-    "node-sass": "^9.0.0",
-    "puppeteer": "^21.0.0",
-    "sass-loader": "^13.3.2",
-    "scss": "^0.2.4",
-    "scss-loader": "^0.0.1",
-    "vue": "^2.6.14",
-    "vue-router": "^3.6.5",
-    "vuex": "^3.6.2"
+    "pinia": "^2.2.0",
+    "vue": "^3.5.0",
+    "vue-router": "^4.5.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.12.16",
-    "@babel/eslint-parser": "^7.12.16",
-    "@vue/cli-plugin-babel": "~5.0.0",
-    "@vue/cli-plugin-eslint": "~5.0.0",
-    "@vue/cli-service": "~5.0.0",
-    "babel-plugin-component": "^1.1.1",
+    "@types/lodash": "^4.17.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "@vitejs/plugin-vue": "^5.2.0",
     "electron": "^28.1.0",
-    "electron-devtools-installer": "^3.1.0",
+    "electron-builder": "^24.13.0",
+    "electron-devtools-installer": "^3.2.0",
     "electron-icon-builder": "^2.0.1",
-    "eslint": "^7.32.0",
-    "eslint-plugin-vue": "^8.0.3",
-    "vue-cli-plugin-electron-builder": "~2.1.1",
-    "vue-template-compiler": "^2.6.14"
+    "electron-store": "^8.2.0",
+    "electron-vite": "^2.3.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-vue": "^9.30.0",
+    "sass": "^1.80.0",
+    "typescript": "^5.6.0",
+    "vite": "^5.4.0",
+    "vue-tsc": "^2.0.0"
   },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended"
-    ],
-    "parserOptions": {
-      "parser": "@babel/eslint-parser"
-    },
-    "rules": {}
-  },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not dead"
-  ],
   "engines": {
     "node": ">= 18"
+  },
+  "build": {
+    "productName": "assist_3d",
+    "appId": "assist_3d",
+    "copyright": "Copyright © year 2023",
+    "artifactName": "assist3d_Setup_${version}_${platform}.${ext}",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "icon": "build/icons/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["ia32"]
+        }
+      ]
+    },
+    "mac": {
+      "category": "public.app-category.finance",
+      "icon": "build/icons/icon.icns",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": "universal"
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "./build/icons/icon.ico",
+      "uninstallerIcon": "./build/icons/icon.ico",
+      "installerHeaderIcon": "./build/icons/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "assist_3d",
+      "runAfterFinish": true
+    },
+    "dmg": {
+      "icon": "build/icons/icon.icns"
+    }
   }
 }

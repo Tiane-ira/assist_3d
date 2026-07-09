@@ -6,8 +6,12 @@ import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 const path = require("path");
-const debug = true;
-// const debug = false;
+const debug = process.env.DEBUG_FILTERS === "true";
+const debugLog = (...args) => {
+    if (debug) {
+        console.log(...args);
+    }
+};
 
 const Store = require("electron-store");
 const store = new Store();
@@ -143,12 +147,12 @@ if (isDevelopment) {
 
 ipcMain.handle("setConfig", (e, key, value) => {
     store.set(key, value);
-    console.log("保存配置", key, value);
+    debugLog("保存配置", key, value);
 });
 
 ipcMain.handle("getConfig", (e, key) => {
     let value = store.get(key);
-    console.log("获取配置", key, value);
+    debugLog("获取配置", key, value);
     return value;
 });
 
@@ -714,7 +718,7 @@ function checkJodw(code, checks) {
 }
 
 function checkZxsmc(code, checks) {
-    console.log("checkZxsmc",checks)
+    debugLog("checkZxsmc", checks)
     let hun = parseInt(code[0]);
     let ten = parseInt(code[1]);
     let bit = parseInt(code[2]);
@@ -911,7 +915,7 @@ function checkCode(code, calcItem) {
         } else if (label === "rylmc") {
             return checkRylmc(code, checks);
         } else if (label === "zxlmh") {
-            console.log(code, checks);
+            debugLog(code, checks);
             return checkZxlmh(code, checks);
         } else if (label === "zjlmh") {
             return checkZjlmh(code, checks);
@@ -1081,7 +1085,7 @@ function codesFilter(codeList, ruleList, igCounts, orderType) {
         }
     }
     if (debug) {
-        console.log("可容错条件:", igAllIndexArr);
+        debugLog("可容错条件:", igAllIndexArr);
     }
     // 获取所有容错条件下标子集,按照子数组和子数组元素之和进行倒叙排序
     let subIgIndexArrList = subsets(igAllIndexArr).sort((arr1, arr2) => {
@@ -1095,29 +1099,29 @@ function codesFilter(codeList, ruleList, igCounts, orderType) {
         return lenDiff;
     });
     if (debug) {
-        console.log("容错条件组合:", subIgIndexArrList);
+        debugLog("容错条件组合:", subIgIndexArrList);
     }
     for (let igCount of igCounts) {
         let igIndexArrList = getIgIndexArrList(igCount, subIgIndexArrList); //获取当前容错数量的所有容错条件的组合可能
         for (let igIndexArr of igIndexArrList) {
             if (debug) {
-                console.log("容错下标组", igIndexArrList);
+                debugLog("容错下标组", igIndexArrList);
             }
             let calcGroups;
             if (orderType) {
-                console.log("交叉排列");
+                debugLog("交叉排列");
                 calcGroups = getCalcGroups2(ruleList, igIndexArr);
             } else {
-                console.log("顺序排列");
+                debugLog("顺序排列");
                 calcGroups = getCalcGroups(ruleList, igIndexArr);
             }
             if (debug) {
-                console.log("当前容错计算项", igIndexArr, calcGroups, codeList);
+                debugLog("当前容错计算项", igIndexArr, calcGroups, codeList);
             }
             for (let calcGroup of calcGroups) {
                 let filterCodes = doFilter(codeList, calcGroup); //单次过滤得到的code列表
                 if (debug) {
-                    console.log("过滤结果", filterCodes);
+                    debugLog("过滤结果", filterCodes);
                 }
                 for (let filterCode of filterCodes) {
                     if (resultCodes.indexOf(filterCode) === -1) {
@@ -1127,7 +1131,7 @@ function codesFilter(codeList, ruleList, igCounts, orderType) {
                 }
                 if (restCodes.length === 0) break;
             }
-            console.log(
+            debugLog(
                 "条件数:",
                 calcGroups.length,
                 "最终结果数:",

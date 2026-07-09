@@ -17,12 +17,6 @@ export const getSeqArr = (end) => {
 
 export const getNumGroup = (numList, typeList) => {
     let resultList = [];
-    if (typeList.indexOf("组三") > -1 && numList.length < 2) {
-        console.log("待选值数量小于2,无法产生组三号码");
-    }
-    if (typeList.indexOf("组六") > -1 && numList.length < 3) {
-        console.log("待选值数量小于3,无法产生组六号码");
-    }
     if (typeList.indexOf("豹子") > -1) {
         resultList = [...resultList, ...getBzList(numList)];
     }
@@ -48,7 +42,7 @@ export const getNumGroup = (numList, typeList) => {
 
 //豹子:竟猜三位开奖号码，即百位、十位和个位三位相同
 function getBzList(numList) {
-    let orderList = numList.sort();
+    let orderList = [...numList].sort();
     let resArr = [];
     for (let num of orderList) {
         resArr.push(`${num}${num}${num}`);
@@ -63,9 +57,9 @@ function isBz(code) {
 //组三:竟猜三位开奖号码，即百位、十位和个位，顺序不限，且投注时三位号码有两位相同。
 function getZsList(numList) {
     if (numList.length < 2) {
-        console.log("待选值数量小于2,无法产生组三号码");
+        return [];
     }
-    let orderList = numList.sort();
+    let orderList = [...numList].sort();
     let resArr = [];
     for (let one of orderList) {
         for (let two of orderList) {
@@ -86,9 +80,9 @@ function isZs(code) {
 //组六:竟猜三位开奖号码，即百位、十位和个位，顺序不限，且投注时三位号码各不相同
 function getZulList(numList) {
     if (numList.length < 3) {
-        console.log("待选值数量小于3,无法产生组六号码");
+        return [];
     }
-    let orderList = numList.sort();
+    let orderList = [...numList].sort();
     let resArr = [];
     for (let first of orderList) {
         for (let second of orderList) {
@@ -112,7 +106,7 @@ function isZul(code) {
 
 //顺子:竟猜三位开奖号码，即百位、十位和个位，百位、十位和个位都不相同且依次递增为1,从0-9,9-0循环
 function getSzList(numList) {
-    let orderList = numList.sort();
+    let orderList = [...numList].sort();
     let resArr = [];
     for (let first of orderList) {
         for (let second of orderList) {
@@ -137,7 +131,7 @@ function szIncrement(num) {
 
 //半顺:竟猜三位开奖号码，即百位、十位和个位，百位、十位和个位都不相同且百十位或十个位依次递增为1,从0-9,9-0循环
 function getBsList(numList) {
-    let orderList = numList.sort();
+    let orderList = [...numList].sort();
     let resArr = [];
     for (let first of orderList) {
         for (let second of orderList) {
@@ -184,7 +178,7 @@ function isBanShun(code) {
 
 //杂六:竟猜三位开奖号码，即百位、十位和个位，百位、十位和个位都不相同且互不相邻
 function getZalList(numList) {
-    let orderList = numList.sort();
+    let orderList = [...numList].sort();
     let resArr = [];
     for (let first of orderList) {
         for (let second of orderList) {
@@ -356,4 +350,3 @@ export const validCodes = (codes) => {
         }
     }
 }
-

@@ -59,9 +59,7 @@ export default {
         codeList = getNumDirect(this.bitList, this.tenList, this.hundredList, this.groupTypes);
       }
       _.pullAll(codeList, this.shCodes)
-      console.log(codeList)
       let igCounts = getIgCounts(this.igMin, this.igMax); // 默认0-0无容错
-      // console.log(codeList, igCounts);
       let zxsmcRule = this.checkRules.find(item => item.label === 'zxsmc')
       window.electron
         .filterCodes(codeList, this.checkRules, igCounts, this.orderType)

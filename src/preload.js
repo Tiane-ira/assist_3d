@@ -1,15 +1,15 @@
-const {contextBridge, ipcRenderer} = require('electron')
+const { contextBridge, ipcRenderer } = require('electron')
 
 const getConfig = (key) => {
     return ipcRenderer.invoke('getConfig', key)
 }
 
 const setConfig = (key, value) => {
-    ipcRenderer.invoke('setConfig', key, value)
+    return ipcRenderer.invoke('setConfig', key, value)
 }
 
 const copy2Clipboard = (data) => {
-    ipcRenderer.invoke('copy2Clipboard', data)
+    return ipcRenderer.invoke('copy2Clipboard', data)
 }
 
 const filterCodes = (codeList, ruleList, igCounts, orderType) => {
@@ -28,4 +28,3 @@ contextBridge.exposeInMainWorld('electron', {
     filterCodes,
     openWindow
 })
-

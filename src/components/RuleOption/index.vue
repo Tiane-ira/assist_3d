@@ -121,7 +121,7 @@ export default {
     },
     ...mapState(["activeTab", "shCodes"]),
     shGroup() {
-      let arr = this.shRule.shInput.trim().split(" ").filter(item => item, length > 0);
+      let arr = this.shRule.shInput.trim().split(/\s+/).filter(item => item.length > 0);
       return [...new Set(arr)]
     },
   },
@@ -427,7 +427,6 @@ export default {
     },
     saveFstjRule() {
       let checkMsg = this.checkFstj();
-      console.log(checkMsg);
       if (checkMsg) {
         this.$message.error({
           message: checkMsg,

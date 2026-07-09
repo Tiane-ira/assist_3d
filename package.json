@@ -7,6 +7,7 @@
   "private": true,
   "scripts": {
     "start": "vue-cli-service electron:serve",
+    "lint": "vue-cli-service lint",
     "win": "set NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service electron:build --win",
     "mac": "export NODE_OPTIONS=--openssl-legacy-provider && export PYTHON_PATH=/Library/Frameworks/Python.framework/Versions/2.7/bin/python && vue-cli-service electron:build --mac",
     "icon": "electron-icon-builder --input=./public/icon.png --output=build --flatten"

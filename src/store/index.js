@@ -93,7 +93,6 @@ export default new Vuex.Store({
     },
     async SAVE_CONFIG(state, config) {
       state.configList.unshift(config);
-      console.log(config, state.configList);
       await setConfigList(state.configList);
     },
     async DELETE_CONFIG(state, index) {

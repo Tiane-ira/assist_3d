@@ -14,9 +14,15 @@ npm install
 npm run start
 ```
 
-### Compiles and minifies for production
+### Lints and fixes files
 ```
-npm run build
+npm run lint
+```
+
+### Builds installers
+```
+npm run win
+npm run mac
 ```
 
 ### Customize configuration
